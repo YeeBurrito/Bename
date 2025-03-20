@@ -36,6 +36,7 @@ android {
     }
     buildFeatures {
         compose = true
+        viewBinding = true
     }
 }
 
@@ -52,6 +53,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.extensions)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.4.0")
     implementation("androidx.compose.runtime:runtime-livedata:1.0.5")
+    implementation(libs.material)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

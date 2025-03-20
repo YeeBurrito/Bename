@@ -1,6 +1,7 @@
 package com.example.bename.ui
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.bename.data.local.BenameTab
 import com.example.bename.ui.theme.BenameTheme
@@ -32,6 +34,10 @@ fun BenameApp(
         }
     ) {
         when (benameUiState.currentTab) {
+            BenameTab.Search -> {
+                BenameSearchScreen()
+            }
+
             BenameTab.People -> {
                 BenamePeopleScreen()
             }
@@ -40,9 +46,9 @@ fun BenameApp(
                 BenameTagsScreen()
             }
 
-            BenameTab.Search -> TODO()
-            BenameTab.AddPerson -> TODO()
-            BenameTab.Settings -> TODO()
+            BenameTab.Settings -> {
+                BenameSettingsScreen()
+            }
         }
     }
 }
@@ -55,18 +61,32 @@ fun BenameBottomAppBar(
 ) {
     BottomAppBar() {
         Row(
-            modifier = Modifier.fillMaxWidth(), // Optional: Fill the available width
+            //modifier = Modifier.fillMaxWidth(), // Optional: Fill the available width
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Text("Search", Modifier.background(Color.Red))
+            Button(onClick = { viewModel.switchTab(BenameTab.Search) }) {
+                Text("Search", Modifier.background(Color.Green))
+            }
             Button(onClick = { viewModel.switchTab(BenameTab.Tags) }) {
                 Text("Tags", Modifier.background(Color.Green))
+            }
+            // The AddPerson button starts the AddPersonActivity with an Intent
+            val context = LocalContext.current
+            Button(onClick = {
+                try {
+                    context.startActivity(Intent(context, AddPersonActivity::class.java))
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }) {
+                Text("Add Person", Modifier.background(Color.Green))
             }
             Button(onClick = { viewModel.switchTab(BenameTab.People) }) {
                 Text("People", Modifier.background(Color.Green))
             }
-            Text("People", Modifier.background(Color.Green))
-            Text("Settings", Modifier.background(Color.Blue))
+            Button(onClick = { viewModel.switchTab(BenameTab.Settings) }) {
+                Text("Add Person", Modifier.background(Color.Green))
+            }
         }
     }
 }
