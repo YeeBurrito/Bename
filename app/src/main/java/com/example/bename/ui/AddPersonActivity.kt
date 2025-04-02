@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bename.MainActivity
 import com.example.bename.ui.theme.BenameTheme
 
@@ -40,28 +42,57 @@ class AddPersonActivity : ComponentActivity() {
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun AddPersonMenu() {
+fun AddPersonMenu(
+
+) {
+    val viewModel: AddPersonViewModel = viewModel()
     val context = LocalContext.current
     Scaffold(
         topBar = {
-            AddPersonMenuTopBar(context = context)
+            AddPersonMenuTopBar(
+                savePerson = viewModel::savePerson,
+                context = context
+            )
         }
     ) {
-        AddPersonMenuContent()
+        AddPersonMenuContent(
+            onFirstNameChanged = viewModel::onFirstNameChange,
+            onLastNameChanged = viewModel::onLastNameChange,
+            onDescriptionChanged = viewModel::onDescriptionChange
+        )
     }
 }
 
 @Composable
-fun AddPersonMenuContent() {
+fun AddPersonMenuContent(
+    onFirstNameChanged: (String) -> Unit,
+    onLastNameChanged: (String) -> Unit,
+    onDescriptionChanged: (String) -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(text = "Add a new person")
-        Button(onClick = { /*TODO*/ }) {
-            Text(text = "Add")
-        }
+        OutlinedTextField(
+            value = "",
+            onValueChange = onFirstNameChanged,
+            label = { Text("First Name") },
+            modifier = Modifier.padding(16.dp)
+        )
+        OutlinedTextField(
+            value = "",
+            onValueChange = onLastNameChanged,
+            label = { Text("Last Name") },
+            modifier = Modifier.padding(16.dp)
+        )
+        OutlinedTextField(
+            value = "",
+            onValueChange = onDescriptionChanged,
+            label = { Text("Description") },
+            modifier = Modifier.padding(16.dp)
+        )
     }
 }
 
@@ -69,6 +100,7 @@ fun AddPersonMenuContent() {
 @Composable
 fun AddPersonMenuTopBar(
     modifier: Modifier = Modifier,
+    savePerson: () -> Unit,
     context: android.content.Context
 ) {
     //The top bar has a cancel button on the left, text in the middle and a save button on the right
@@ -76,7 +108,7 @@ fun AddPersonMenuTopBar(
         modifier = modifier,
         title = { Text(text = "Add Person") },
         actions = {
-            Button(onClick = { /* Handle save action */ }) {
+            Button(onClick = { savePerson()}) {
                 Text(text = "Save")
             }
         }
