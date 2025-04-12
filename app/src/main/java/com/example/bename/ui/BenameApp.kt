@@ -72,13 +72,7 @@ fun BenameBottomAppBar(
             }
             // The AddPerson button starts the AddPersonActivity with an Intent
             val context = LocalContext.current
-            Button(onClick = {
-                try {
-                    context.startActivity(Intent(context, AddPersonActivity::class.java))
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }) {
+            Button(onClick = { }){
                 Text("Add Person", Modifier.background(Color.Green))
             }
             Button(onClick = { viewModel.switchTab(BenameTab.People) }) {

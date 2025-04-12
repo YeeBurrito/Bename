@@ -13,7 +13,7 @@
         android:theme="@style/Theme.Bename"
         tools:targetApi="31">
         <activity
-            android:name=".ui.AddPersonActivity"
+            android:name=".addeditperson.AddPersonActivity"
             android:exported="false"
             android:theme="@style/Theme.Bename" />
         <activity

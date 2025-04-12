@@ -1,70 +1,70 @@
-package com.example.bename.ui
+@file:OptIn(ExperimentalMaterial3Api::class)
+
+package com.example.bename.addeditperson
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.setContent
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.bename.MainActivity
+import com.example.bename.R
 import com.example.bename.ui.theme.BenameTheme
+import com.example.bename.util.AddEditPersonTopAppBar
 
-class AddPersonActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            BenameTheme {
-                AddPersonMenu()
+@Composable
+fun AddPersonScreen(
+    @StringRes topBarTitle: Int,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: AddEditPersonViewModel = viewModel(),
+    ) {
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            AddEditPersonTopAppBar(topBarTitle, onBack)
+        },
+        floatingActionButton = {
+            SmallFloatingActionButton(onClick = viewModel::savePerson) {
+                Icon(Icons.Filled.Done, stringResource(id = R.string.cd_save))
             }
         }
-    }
-}
+    ) { paddingValues ->
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@Composable
-fun AddPersonMenu(
-
-) {
-    val viewModel: AddPersonViewModel = viewModel()
-    val context = LocalContext.current
-    Scaffold(
-        topBar = {
-            AddPersonMenuTopBar(
-                savePerson = viewModel::savePerson,
-                context = context
-            )
-        }
-    ) {
-        AddPersonMenuContent(
-            onFirstNameChanged = viewModel::onFirstNameChange,
-            onLastNameChanged = viewModel::onLastNameChange,
-            onDescriptionChanged = viewModel::onDescriptionChange
+        AddEditPersonContent(
+            onFirstNameChanged = { viewModel.onFirstNameChanged(it) },
+            onLastNameChanged = { viewModel.onLastNameChanged(it) },
+            onDescriptionChanged = { viewModel.onDescriptionChanged(it) }
         )
     }
 }
 
 @Composable
-fun AddPersonMenuContent(
+fun AddEditPersonContent(
     onFirstNameChanged: (String) -> Unit,
     onLastNameChanged: (String) -> Unit,
     onDescriptionChanged: (String) -> Unit
@@ -119,6 +119,5 @@ fun AddPersonMenuTopBar(
 @Composable
 fun AddPersonMenuPreview() {
     BenameTheme {
-        AddPersonMenu()
     }
 }
