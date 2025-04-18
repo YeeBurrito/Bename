@@ -2,30 +2,22 @@
 
 package com.example.bename.addeditperson
 
-import android.annotation.SuppressLint
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -36,7 +28,7 @@ import com.example.bename.ui.theme.BenameTheme
 import com.example.bename.util.AddEditPersonTopAppBar
 
 @Composable
-fun AddPersonScreen(
+fun AddEditPersonScreen(
     @StringRes topBarTitle: Int,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
@@ -56,68 +48,74 @@ fun AddPersonScreen(
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
         AddEditPersonContent(
-            onFirstNameChanged = { viewModel.onFirstNameChanged(it) },
-            onLastNameChanged = { viewModel.onLastNameChanged(it) },
-            onDescriptionChanged = { viewModel.onDescriptionChanged(it) }
+            firstName = uiState.firstName,
+            lastName = uiState.lastName,
+            description = uiState.description,
+            onFirstNameChanged = viewModel::updateFirstName,
+            onLastNameChanged = viewModel::updateLastName,
+            onDescriptionChanged = viewModel::updateDescription,
+            modifier = Modifier
+                .padding(paddingValues)
         )
     }
 }
 
 @Composable
 fun AddEditPersonContent(
-    onFirstNameChanged: (String) -> Unit,
-    onLastNameChanged: (String) -> Unit,
-    onDescriptionChanged: (String) -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+    modifier: Modifier = Modifier,
+    firstName: String = "",
+    lastName: String = "",
+    description: String = "",
+    onFirstNameChanged: (String) -> Unit = {},
+    onLastNameChanged: (String) -> Unit = {},
+    onDescriptionChanged: (String) -> Unit = {},
     ) {
-        Text(text = "Add a new person")
+    Column(
+        modifier
+            .fillMaxSize()
+            .padding(16.dp),
+    ) {
         OutlinedTextField(
-            value = "",
+            value = firstName,
             onValueChange = onFirstNameChanged,
-            label = { Text("First Name") },
-            modifier = Modifier.padding(16.dp)
+            label = { Text(stringResource(R.string.first_name)) },
+            modifier = Modifier
+                .padding(bottom = 8.dp)
+                .fillMaxWidth(),
+            maxLines = 1,
         )
         OutlinedTextField(
-            value = "",
+            value = lastName,
             onValueChange = onLastNameChanged,
-            label = { Text("Last Name") },
-            modifier = Modifier.padding(16.dp)
+            label = { Text(stringResource(R.string.last_name)) },
+            modifier = Modifier
+                .padding(bottom = 8.dp)
+                .fillMaxWidth(),
+            maxLines = 1,
         )
         OutlinedTextField(
-            value = "",
+            value = description,
             onValueChange = onDescriptionChanged,
-            label = { Text("Description") },
-            modifier = Modifier.padding(16.dp)
+            label = { Text(stringResource(R.string.description)) },
+            modifier = Modifier
+                .padding(bottom = 8.dp)
+                .fillMaxWidth(),
+            maxLines = 5,
+        )
+        Text(
+            text = "Tags (optional)",
+            modifier = Modifier.padding(bottom = 8.dp)
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AddPersonMenuTopBar(
-    modifier: Modifier = Modifier,
-    savePerson: () -> Unit,
-    context: android.content.Context
-) {
-    //The top bar has a cancel button on the left, text in the middle and a save button on the right
-    TopAppBar(
-        modifier = modifier,
-        title = { Text(text = "Add Person") },
-        actions = {
-            Button(onClick = { savePerson()}) {
-                Text(text = "Save")
-            }
-        }
-    )
-}
-
 @Preview
 @Composable
-fun AddPersonMenuPreview() {
+private fun AddPersonScreenPreview() {
     BenameTheme {
+        AddEditPersonScreen(
+            topBarTitle = R.string.add_person,
+            onBack = {}
+        )
     }
 }
