@@ -1,7 +1,7 @@
 package com.example.bename.ui
 
-import com.example.bename.data.local.Person
-import com.example.bename.data.local.BenameTab
+import com.example.bename.data.Person
+import com.example.bename.data.BenameTab
 
 data class BenameUiState(
     val people: List<Person>? = null,

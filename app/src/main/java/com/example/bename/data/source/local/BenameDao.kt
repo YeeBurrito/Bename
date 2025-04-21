@@ -1,4 +1,4 @@
-package com.example.bename.data.local
+package com.example.bename.data.source.local
 
 import androidx.room.Dao
 import androidx.room.Query

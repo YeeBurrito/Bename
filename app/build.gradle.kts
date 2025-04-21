@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.extensions)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.compose.runtime:runtime-livedata:1.7.8")
+    implementation("javax.inject:javax.inject:1")
     implementation(libs.androidx.room.compiler)
     implementation(libs.material)
     implementation(libs.androidx.appcompat)

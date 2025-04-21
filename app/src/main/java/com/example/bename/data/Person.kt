@@ -1,6 +1,5 @@
-package com.example.bename.data.local
+package com.example.bename.data
 
-import androidx.annotation.StringRes
 import java.util.Date
 
 /**

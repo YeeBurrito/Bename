@@ -1,11 +1,10 @@
 package com.example.bename.ui
 
 import androidx.lifecycle.ViewModel
-import com.example.bename.data.local.BenameTab
-import com.example.bename.data.local.Person
+import com.example.bename.data.BenameTab
+import com.example.bename.data.Person
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import java.util.Date
 
 class BenameViewModel : ViewModel() {
 

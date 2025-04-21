@@ -1,7 +1,6 @@
 package com.example.bename.ui
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.bename.data.local.BenameTab
+import com.example.bename.data.BenameTab
 import com.example.bename.ui.theme.BenameTheme
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
