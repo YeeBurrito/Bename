@@ -33,6 +33,27 @@ fun AddEditPersonTopAppBar(
     )
 }
 
+@Composable
+fun PeopleTopAppBar(
+    openDrawer: () -> Unit,
+    onAddPerson: () -> Unit
+) {
+    TopAppBar(
+        title = { Text(text = stringResource(id = R.string.app_name)) },
+        navigationIcon = {
+            IconButton(onClick = openDrawer) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(id = R.string.cd_back))
+            }
+        },
+        actions = {
+            IconButton(onClick = onAddPerson) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(id = R.string.cd_add_person))
+            }
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
 @Preview
 @Composable
 fun AddEditPersonTopAppBarPreview() {
