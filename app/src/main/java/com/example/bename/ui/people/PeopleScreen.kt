@@ -2,25 +2,34 @@ package com.example.bename.ui.people
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bename.R
 import com.example.bename.data.Person
+import com.example.bename.util.LoadingContent
 import com.example.bename.util.PeopleTopAppBar
 import java.util.Date
 
@@ -55,8 +64,42 @@ fun PeopleScreen(
 }
 
 @Composable
-fun PeopleContent(people: Any, onPersonClick: (Person) -> Unit, modifier: Any) {
-
+fun PeopleContent(
+    people: List<Person>,
+    onPersonClick: (Person) -> Unit,
+    modifier: Modifier = Modifier)
+{
+    LoadingContent(
+        loading = false,
+        empty = people.isEmpty(),
+        emptyContent = {
+            Text(text = stringResource(id = R.string.no_people))
+        }
+    ) {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(dimensionResource(id = R.dimen.horizontal_margin))
+        ) {
+            Text(
+                text = "People screen placeholder",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(
+                    horizontal = 8.dp,
+                    vertical = 16.dp
+                    // TODO: Make paddings dimension resources
+                )
+            )
+            LazyColumn {
+                items(people) { person ->
+                    PersonItem(
+                        person = person,
+                        onPersonClick = onPersonClick
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -68,27 +111,65 @@ fun PersonItem(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
+            .padding(
+                horizontal = dimensionResource(id = R.dimen.horizontal_margin),
+                vertical = dimensionResource(id = R.dimen.vertical_margin)
+            )
             .clickable { onPersonClick(person) }
     ) {
-        Text(text = person.firstName)
-        person.lastName?.let { Text(text = it) }
+        Text(text = person.firstName + " ")
+        person.lastName?.let { Text(text = "$it ") }
         person.desc?.let { Text(text = it) }
     }
 }
 
 @Preview
 @Composable
+fun PeopleContentPreview() {
+    MaterialTheme {
+        Surface {
+            PeopleContent(
+                people = listOf(
+                    Person(
+                        id = 1,
+                        firstName = "John",
+                        lastName = "Doe",
+                        desc = "A sample person",
+                        created = Date(),
+                        updated = Date()
+                    ),
+                    Person(
+                        id = 2,
+                        firstName = "Jane",
+                        lastName = "Doe",
+                        desc = "Another sample person",
+                        created = Date(),
+                        updated = Date()
+                    )
+                ),
+                onPersonClick = {}
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
 fun PersonItemPreview() {
-    PersonItem(
-        person = Person(
-            id = 1,
-            firstName = "John",
-            lastName = "Doe",
-            desc = "A sample person",
-            created = Date(),
-            updated = Date()
-        ),
-        onPersonClick = {}
-    )
+    MaterialTheme {
+        Surface {
+            PersonItem(
+                person = Person(
+                    id = 1,
+                    firstName = "John",
+                    lastName = "Doe",
+                    desc = "A sample person",
+                    created = Date(),
+                    updated = Date()
+                ),
+                onPersonClick = {}
+            )
+        }
+    }
 }
