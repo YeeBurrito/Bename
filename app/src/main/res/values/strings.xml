@@ -50,4 +50,5 @@
     <string name="description">Description</string>
     <string name="cd_add_person">Add Person</string>
     <string name="no_people">No people</string>
+    <string name="cd_arrow_forward">Edit Person</string>
 </resources>

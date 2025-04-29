@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,7 +13,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -96,6 +100,7 @@ fun PeopleContent(
                         person = person,
                         onPersonClick = onPersonClick
                     )
+                    Divider(color = MaterialTheme.colorScheme.outline)
                 }
             }
         }
@@ -118,9 +123,22 @@ fun PersonItem(
             )
             .clickable { onPersonClick(person) }
     ) {
-        Text(text = person.firstName + " ")
-        person.lastName?.let { Text(text = "$it ") }
-        person.desc?.let { Text(text = it) }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "${person.firstName} ${person.lastName.orEmpty()}",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                text = "Tags: (tags go here)",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = stringResource(id = R.string.cd_arrow_forward)
+        )
     }
 }
 
