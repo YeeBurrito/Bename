@@ -18,7 +18,6 @@ import androidx.navigation.navArgument
 import com.example.bename.BenameDestinationsArgs.USER_MESSAGE_ARG
 import com.example.bename.ui.people.PeopleScreen
 import com.example.bename.ui.search.SearchScreen
-import com.example.bename.util.AppModalDrawer
 import com.example.bename.util.BenameBottomBar
 import kotlinx.coroutines.CoroutineScope
 
