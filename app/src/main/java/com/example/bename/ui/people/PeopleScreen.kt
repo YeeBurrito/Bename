@@ -24,6 +24,11 @@ import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -36,7 +41,9 @@ import com.example.bename.R
 import com.example.bename.data.Person
 import com.example.bename.util.LoadingContent
 import com.example.bename.util.PeopleTopAppBar
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 @Composable
 fun PeopleScreen(
@@ -114,6 +121,10 @@ fun PersonItem(
     onPersonClick: (Person) -> Unit
 )
 {
+    //TODO: Make sure only one item is expanded at a time
+    var isExpanded by remember { mutableStateOf(false) }
+    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -122,7 +133,10 @@ fun PersonItem(
                 horizontal = dimensionResource(id = R.dimen.horizontal_margin),
                 vertical = dimensionResource(id = R.dimen.vertical_margin)
             )
-            .clickable { onPersonClick(person) }
+            .clickable {
+                isExpanded = !isExpanded
+                onPersonClick(person)
+            }
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -134,6 +148,19 @@ fun PersonItem(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            if (isExpanded) {
+                Spacer(modifier = Modifier.padding(vertical = 4.dp))
+                Text(
+                    text = person.desc.orEmpty(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Created: ${dateFormatter.format(person.created)} \t Updated: ${dateFormatter.format(person.updated)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
 
         Icon(
@@ -162,7 +189,6 @@ fun PeopleContentPreview() {
                         id = 2,
                         firstName = "Jane",
                         lastName = "Doe",
-                        desc = "Another sample person",
                         created = Date(),
                         updated = Date()
                     )

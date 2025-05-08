@@ -18,6 +18,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -125,27 +126,29 @@ fun PersonItem(person: Person, onPersonClick: (Person) -> Unit) {
 @Composable
 fun SearchContentPreview() {
     MaterialTheme {
-        SearchContent(
-            people = listOf(
-                Person(
-                    id = 1,
-                    firstName = "John",
-                    lastName = "Doe",
-                    desc = "A sample person",
-                    created = Date(),
-                    updated = Date()
+        Surface {
+            SearchContent(
+                people = listOf(
+                    Person(
+                        id = 1,
+                        firstName = "John",
+                        lastName = "Doe",
+                        desc = "A sample person",
+                        created = Date(),
+                        updated = Date()
+                    ),
+                    Person(
+                        id = 2,
+                        firstName = "Jane",
+                        lastName = "Doe",
+                        desc = "Another sample person",
+                        created = Date(),
+                        updated = Date()
+                    )
                 ),
-                Person(
-                    id = 2,
-                    firstName = "Jane",
-                    lastName = "Doe",
-                    desc = "Another sample person",
-                    created = Date(),
-                    updated = Date()
-                )
-            ),
-            onPersonClick = {}
-        )
+                onPersonClick = {}
+            )
+        }
     }
 }
 
@@ -153,16 +156,18 @@ fun SearchContentPreview() {
 @Composable
 fun PersonItemPreview() {
     MaterialTheme {
-        PersonItem(
-            person = Person(
-                id = 1,
-                firstName = "John",
-                lastName = "Doe",
-                desc = "A sample person",
-                created = Date(),
-                updated = Date()
-            ),
-            onPersonClick = {}
-        )
+        Surface {
+            PersonItem(
+                person = Person(
+                    id = 1,
+                    firstName = "John",
+                    lastName = "Doe",
+                    desc = "A sample person",
+                    created = Date(),
+                    updated = Date()
+                ),
+                onPersonClick = {}
+            )
+        }
     }
 }
