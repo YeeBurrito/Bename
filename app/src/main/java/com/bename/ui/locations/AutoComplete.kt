@@ -31,7 +31,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.coroutines.resumeWithException
+import androidx.compose.material3.ExposedDropdownMenuBox
+//import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.ExperimentalMaterial3Api
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlacesAutocompleteScreen(
     apiKey: String,
@@ -46,7 +51,6 @@ fun PlacesAutocompleteScreen(
     val isInEditMode = LocalInspectionMode.current
 
     if (isInEditMode) {
-        // Show a simple placeholder in preview
         Column(
             modifier = modifier
                 .fillMaxWidth()
@@ -65,7 +69,6 @@ fun PlacesAutocompleteScreen(
         return
     }
 
-    // Initialize Places API
     LaunchedEffect(Unit) {
         if (!Places.isInitialized()) {
             Places.initialize(context.applicationContext, apiKey)
@@ -97,31 +100,37 @@ fun PlacesAutocompleteScreen(
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = {
-                searchQuery = it
-                fetchPredictions(it)
-            },
-            label = { Text("Search for a location") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-        DropdownMenu(
+        ExposedDropdownMenuBox(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth()
+            onExpandedChange = { expanded = it }
         ) {
-            suggestions.forEach { prediction ->
-                DropdownMenuItem(
-                    text = { Text(prediction.getFullText(null).toString()) },
-                    onClick = {
-                        selectedPlace = prediction.getFullText(null).toString()
-                        searchQuery = selectedPlace ?: ""
-                        expanded = false
-                        suggestions = emptyList()
-                    }
-                )
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = {
+                    searchQuery = it
+                    fetchPredictions(it)
+                },
+                label = { Text("Search for a location") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
+                singleLine = true
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                suggestions.forEach { prediction ->
+                    DropdownMenuItem(
+                        text = { Text(prediction.getFullText(null).toString()) },
+                        onClick = {
+                            selectedPlace = prediction.getFullText(null).toString()
+                            searchQuery = selectedPlace ?: ""
+                            expanded = false
+                            suggestions = emptyList()
+                        }
+                    )
+                }
             }
         }
         Spacer(modifier = Modifier.height(24.dp))

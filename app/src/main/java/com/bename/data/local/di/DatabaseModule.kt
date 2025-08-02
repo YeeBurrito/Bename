@@ -24,6 +24,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import com.bename.data.local.database.AppDatabase
+import com.bename.data.local.database.LocationDao
 import com.bename.data.local.database.PersonDao
 import com.bename.data.local.database.TagDao
 import javax.inject.Singleton
@@ -43,12 +44,17 @@ class DatabaseModule {
     }
 
     @Provides
+    fun provideLocationDao(appDatabase: AppDatabase): LocationDao {
+        return appDatabase.locationDao()
+    }
+
+    @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext appContext: Context): AppDatabase {
         return Room.databaseBuilder(
             appContext,
             AppDatabase::class.java,
-            "Person"
-        ).build()
+            "bename_database"
+        ).fallbackToDestructiveMigration().build()
     }
 }

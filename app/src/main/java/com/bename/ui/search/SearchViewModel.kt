@@ -7,10 +7,13 @@ import com.bename.data.local.database.Person
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
+import com.bename.data.TagRepository
+import com.bename.data.local.database.Tag
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val personRepository: PersonRepository
+    private val personRepository: PersonRepository,
+    private val tagRepository: TagRepository
 ) : ViewModel() {
 
     private val _query = MutableStateFlow("")
@@ -26,6 +29,10 @@ class SearchViewModel @Inject constructor(
                     (it.lastName?.contains(query, ignoreCase = true) == true)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val tags: StateFlow<List<Tag>> = tagRepository
+        .tags
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun updateQuery(newQuery: String) {
         _query.value = newQuery

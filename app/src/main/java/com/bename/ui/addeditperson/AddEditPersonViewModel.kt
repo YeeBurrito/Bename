@@ -74,6 +74,12 @@ class AddEditPersonViewModel @Inject constructor(
             _person.value = current.copy(tagIds = current.tagIds - tagId).also { it.uid = current.uid }
         }
     }
+
+    fun removePerson(person: Person) {
+        viewModelScope.launch {
+            personRepository.remove(person)
+        }
+    }
 }
 
 sealed interface AddEditPersonUiState {

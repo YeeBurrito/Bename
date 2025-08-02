@@ -10,10 +10,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.bename.R
 
 enum class BenameDestination(val label: String, val icon: ImageVector) {
-    People("People", Icons.Default.Person),
     Search("Search", Icons.Default.Search),
-    AddEdit("Add/Edit", Icons.Default.Add),
     Tags("Tags", Icons.Default.Info),
+    AddEdit("Add/Edit", Icons.Default.Add),
+    People("People", Icons.Default.Person),
     Settings("Settings", Icons.Default.Settings)
 }
 

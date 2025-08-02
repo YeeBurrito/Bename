@@ -34,6 +34,7 @@ import com.bename.ui.addeditperson.AddEditPersonScreen
 import com.bename.ui.addedittag.AddEditTagScreen
 import com.bename.ui.person.PersonScreen
 import com.bename.ui.search.SearchScreen
+import com.bename.ui.settings.SettingsScreen
 import com.bename.ui.tag.TagScreen
 import com.bename.ui.tag.TagUiState
 import com.bename.ui.tag.TagViewModel
@@ -126,7 +127,7 @@ fun MainNavigation() {
                 )
             }
             //composable(BenameDestination.Tags.name) { TagScreen(modifier = Modifier.padding(16.dp), onAddTag = { navController.navigate("AddEditTag") }) }
-            composable(BenameDestination.Settings.name) { /* TODO: Add SettingsScreen */ }
+            composable(BenameDestination.Settings.name) { SettingsScreen(modifier = Modifier.padding(16.dp)) }
             composable("AddEditTag") { AddEditTagScreen(modifier = Modifier, onBack = { navController.navigateUp() }) }
 
             //composable(BenameDestination.AddEdit.name) { AddEditPersonScreen(modifier = Modifier, onBack = { navController.navigateUp() }) }

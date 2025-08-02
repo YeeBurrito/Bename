@@ -18,6 +18,26 @@ package com.bename
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
 
 @HiltAndroidApp
-class BenameApplication : Application()
+class BenameApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        createGeofenceNotificationChannel()
+    }
+
+    private fun createGeofenceNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "geofence_channel",
+                "Geofence Notifications",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(channel)
+        }
+    }
+}

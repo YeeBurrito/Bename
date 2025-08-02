@@ -1,18 +1,33 @@
 package com.bename.ui.search
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bename.R
 import com.bename.data.local.database.Person
+import com.bename.data.local.database.Tag
 
 @Composable
 fun SearchScreen(
@@ -20,31 +35,169 @@ fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
     onPersonClick: (Int) -> Unit = {}
 ) {
-    val query by viewModel.query.collectAsStateWithLifecycle()
+    val tags by viewModel.tags.collectAsStateWithLifecycle()
     val people by viewModel.people.collectAsStateWithLifecycle()
+    var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    var searchFocused by remember { mutableStateOf(false) }
+    var selectedTags by remember { mutableStateOf(listOf<Tag>()) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
+    // Filter tags by search query
+    //val filteredTags = if (searchQuery.text.isBlank()) tags
+    //else tags.filter { it.name.contains(searchQuery.text, ignoreCase = true) }
+
+    // Filter people by selected tags and search query
+    val filteredPeople = people.filter { person ->
+        val matchesTags = selectedTags.all { tag -> tag.uid in person.tagIds }
+        val matchesQuery = searchQuery.text.isBlank() ||
+                person.firstName.contains(searchQuery.text, ignoreCase = true) ||
+                (person.lastName?.contains(searchQuery.text, ignoreCase = true) == true)
+        matchesTags && matchesQuery
+    }
+    // Get people who have all selected tags
+    val peopleWithSelectedTags = if (selectedTags.isEmpty()) {
+        people
+    } else {
+        people.filter { person ->
+            selectedTags.all { tag -> tag.uid in person.tagIds }
+        }
+    }
+
+    // Collect possible tags from these people, excluding already selected tags
+    val possibleTagUids = peopleWithSelectedTags
+        .flatMap { it.tagIds }
+        .toSet()
+        .minus(selectedTags.map { it.uid }.toSet())
+
+    val possibleTags = if (selectedTags.isEmpty()) {
+        tags
+    } else {
+        // Get people who have all selected tags
+        val peopleWithSelectedTags = people.filter { person ->
+            selectedTags.all { tag -> tag.uid in person.tagIds }
+        }
+        // Collect possible tags from these people, excluding already selected tags
+        val possibleTagUids = peopleWithSelectedTags
+            .flatMap { it.tagIds }
+            .toSet()
+            .minus(selectedTags.map { it.uid }.toSet())
+        tags.filter { it.uid in possibleTagUids }
+    }
+
+    // Filter by search query
+    val filteredTags = if (searchQuery.text.isBlank()) possibleTags
+    else possibleTags.filter { it.name.contains(searchQuery.text, ignoreCase = true) }
+
+    Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
+        // Search bar
         OutlinedTextField(
-            value = query,
-            onValueChange = { viewModel.updateQuery(it) },
-            label = { Text("Search people by name") },
-            modifier = Modifier.fillMaxWidth()
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            label = { Text("Search people or tags") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { searchFocused = it.isFocused },
+            singleLine = true
         )
-        Spacer(modifier = Modifier.height(16.dp))
+
+        // Selected tags below search bar
+        if (selectedTags.isNotEmpty()) {
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                items(selectedTags) { tag ->
+                    AssistChip(
+                        onClick = {},
+                        label = { Text(tag.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.shoppingmode_24pxfilled),
+                                contentDescription = "Tag Icon",
+                                tint = Color(0xFF1976D2), // Blue color
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Remove tag",
+                                modifier = Modifier
+                                    .clickable {
+                                        selectedTags = selectedTags - tag
+                                    }
+                            )
+                        },
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Tag suggestions (when focused or typing)
+        if (searchFocused) { //|| searchQuery.text.isNotBlank()) {
+            LazyColumn {
+                items(filteredTags) { tag ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                selectedTags = selectedTags + tag
+                                searchQuery = TextFieldValue("")
+                            }
+                            .padding(vertical = 4.dp, horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.shoppingmode_24pxfilled),
+                            contentDescription = "Tag Icon",
+                            tint = Color(0xFF1976D2), // Blue color
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = tag.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (selectedTags.isEmpty()) {
+                            // Count how many people have this tag
+                            val count = people.count { person -> tag.uid in person.tagIds }
+                            Text(
+                                text = count.toString(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Gray,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         LazyColumn {
-            items(people) { person ->
-                PersonSearchItem(person = person, onClick = { onPersonClick(person.uid) })
+            items(filteredPeople) { person ->
+                val personTags = tags.filter { it.uid in person.tagIds }
+                PersonSearchItem(
+                    person = person,
+                    tags = personTags,
+                    onClick = { onPersonClick(person.uid) }
+                )
             }
         }
     }
 }
 
 @Composable
-private fun PersonSearchItem(person: Person, onClick: () -> Unit) {
+private fun PersonSearchItem(
+    person: Person,
+    tags: List<Tag>,
+    onClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -55,12 +208,12 @@ private fun PersonSearchItem(person: Person, onClick: () -> Unit) {
             text = "${person.firstName} ${person.lastName.orEmpty()}",
             style = MaterialTheme.typography.bodyLarge
         )
-        if (!person.description.isNullOrBlank()) {
-            Text(
-                text = person.description ?: "",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        Text(
+            text = tags.joinToString(", ") { it.name },
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }

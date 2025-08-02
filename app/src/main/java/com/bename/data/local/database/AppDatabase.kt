@@ -16,16 +16,34 @@
 
 package com.bename.data.local.database
 
+import android.content.Context
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 
-@Database(entities = [Person::class, Tag::class], version = 1)
+@Database(entities = [Person::class, Tag::class, Location::class], version = 2)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun personDao(): PersonDao
     abstract fun tagDao(): TagDao
+    abstract fun locationDao(): LocationDao
+
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getInstance(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "bename_database"
+                ).build().also { INSTANCE = it }
+            }
+        }
+    }
 }
 
 class Converters {
@@ -42,4 +60,12 @@ class Converters {
     @TypeConverter
     fun toStringList(data: String): List<String> =
         if (data.isEmpty()) emptyList() else data.split(";;")
+
+    @TypeConverter
+    fun fromString(value: String?): List<String> =
+        value?.split(";;")?.filter { it.isNotEmpty() } ?: emptyList()
+
+    @TypeConverter
+    fun listToString(list: List<String>?): String =
+        list?.joinToString(";;") ?: ""
 }

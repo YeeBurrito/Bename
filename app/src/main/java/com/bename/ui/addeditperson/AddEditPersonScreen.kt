@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import com.bename.R
 import com.bename.ui.tag.TagUiState
 import com.bename.ui.tag.TagViewModel
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -110,6 +112,7 @@ fun AddEditPersonScreen(
             modifier = Modifier
                 .padding(padding)
                 .padding(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             OutlinedTextField(
                 value = firstName,
@@ -203,6 +206,21 @@ fun AddEditPersonScreen(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
+
+            if (personId != null && personState != null) {
+                Button(
+                    onClick = {
+                        viewModel.removePerson(personState!!)
+                        onBack()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Text("Remove Person", color = Color.White)
+                }
+            }
         }
     }
 }

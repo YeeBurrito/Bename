@@ -28,6 +28,7 @@ interface PersonRepository {
     suspend fun add(person: Person)
     suspend fun update(person: Person)
     suspend fun clearAll()
+    suspend fun remove(person: Person)
 }
 
 class DefaultPersonRepository @Inject constructor(
@@ -47,5 +48,9 @@ class DefaultPersonRepository @Inject constructor(
 
     override suspend fun clearAll() {
         personDao.clearAll()
+    }
+
+    override suspend fun remove(person: Person) {
+        personDao.delete(person)
     }
 }

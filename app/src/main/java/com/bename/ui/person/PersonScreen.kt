@@ -56,14 +56,15 @@ fun PersonScreen(
 ) {
     val items by viewModel.uiState.collectAsStateWithLifecycle()
     Column(modifier = modifier.fillMaxSize()) {
-        Button(
-            onClick = { viewModel.removeAllPeople() },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-        ) {
-            Text("Remove All People")
-        }
+        // Remove all people button (commented out for now)
+//        Button(
+//            onClick = { viewModel.removeAllPeople() },
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(vertical = 8.dp)
+//        ) {
+//            Text("Remove All People")
+//        }
         when (items) {
             is PersonUiState.Success -> {
                 PersonScreen(
@@ -125,7 +126,7 @@ internal fun PersonScreen(
             .padding(dimensionResource(id = R.dimen.horizontal_margin))
     ) {
         Text(
-            text = "People screen placeholder",
+            text = "People",
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(
                 horizontal = 8.dp,

@@ -1,6 +1,7 @@
 package com.bename.data.local.database
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.PrimaryKey
@@ -23,6 +24,9 @@ interface TagDao {
     @Query("SELECT * FROM tag ORDER BY uid DESC") // LIMIT 10
     fun getTags(): Flow<List<Tag>>
 
+    @Query("SELECT * FROM tag ORDER BY uid DESC")
+    suspend fun getAllTags(): List<Tag>
+
     @Query("SELECT * FROM tag WHERE name LIKE '%' || :query || '%' ORDER BY uid DESC LIMIT 10")
     fun searchTags(query: String): Flow<List<Tag>>
 
@@ -31,4 +35,16 @@ interface TagDao {
 
     @Update
     suspend fun updateTag(item: Tag)
+
+    @Query("""
+    SELECT * FROM tag
+    WHERE locations = :locationId
+       OR locations LIKE :locationId || ';;%'
+       OR locations LIKE '%;;' || :locationId || ';;%'
+       OR locations LIKE '%;;' || :locationId
+""")
+    fun getTagsForLocation(locationId: String): List<Tag>
+
+    @Delete
+    suspend fun deleteTag(tag: Tag)
 }

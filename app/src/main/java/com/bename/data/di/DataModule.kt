@@ -16,6 +16,7 @@
 
 package com.bename.data.di
 
+import com.bename.data.DefaultLocationRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -25,7 +26,9 @@ import kotlinx.coroutines.flow.flowOf
 import com.bename.data.PersonRepository
 import com.bename.data.DefaultPersonRepository
 import com.bename.data.DefaultTagRepository
+import com.bename.data.LocationRepository
 import com.bename.data.TagRepository
+import com.bename.data.local.database.Location
 import com.bename.data.local.database.Person
 import com.bename.data.local.database.Tag
 import javax.inject.Inject
@@ -46,6 +49,12 @@ interface DataModule {
     fun bindsTagRepository(
         tagRepository: DefaultTagRepository
     ): TagRepository
+
+    @Singleton
+    @Binds
+    fun bindsLocationRepository(
+        locationRepository: DefaultLocationRepository
+    ): LocationRepository
 }
 
 class FakePersonRepository @Inject constructor() : PersonRepository {
@@ -62,6 +71,10 @@ class FakePersonRepository @Inject constructor() : PersonRepository {
     override suspend fun clearAll() {
         throw NotImplementedError()
     }
+
+    override suspend fun remove(person: Person) {
+        throw NotImplementedError()
+    }
 }
 
 class FakeTagRepository @Inject constructor() : TagRepository {
@@ -76,6 +89,26 @@ class FakeTagRepository @Inject constructor() : TagRepository {
     }
 
     override fun searchTags(query: String): Flow<List<Tag>> {
+        throw NotImplementedError()
+    }
+
+    override suspend fun getAllTags(): List<Tag> {
+        throw NotImplementedError()
+    }
+
+    override suspend fun delete(tag: Tag) {
+        throw NotImplementedError()
+    }
+}
+
+class FakeLocationRepository @Inject constructor() : LocationRepository {
+    override val locations: Flow<List<Location>> = flowOf(fakeLocations)
+
+    override suspend fun add(location: Location) {
+        throw NotImplementedError()
+    }
+
+    override suspend fun remove(location: Location) {
         throw NotImplementedError()
     }
 }
@@ -114,5 +147,20 @@ val fakeTags = listOf(
         name = "Urgent",
         locations = listOf("Office"),
         personIds = listOf(1),
+    )
+)
+
+val fakeLocations = listOf(
+    Location(
+        name = "Home",
+        latitude = 37.4219983,
+        longitude = -122.084,
+        radius = 100f
+    ),
+    Location(
+        name = "Work",
+        latitude = 37.422,
+        longitude = -122.085,
+        radius = 150f
     )
 )

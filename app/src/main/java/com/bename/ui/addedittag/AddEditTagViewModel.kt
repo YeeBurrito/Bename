@@ -2,7 +2,10 @@ package com.bename.ui.addedittag
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bename.data.LocationRepository
+import com.bename.data.PersonRepository
 import com.bename.data.TagRepository
+import com.bename.data.local.database.Location
 import com.bename.data.local.database.Tag
 import com.bename.ui.addedittag.AddEditTagUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,32 +23,21 @@ import javax.inject.Inject
 @HiltViewModel
 class AddEditTagViewModel @Inject constructor(
     private val tagRepository: TagRepository,
-    // Pass tagId as a parameter (nullable)
+    val locationRepository: LocationRepository,
+    private val personRepository: PersonRepository
 ) : ViewModel() {
 
-    // Backing property for the tag being edited or created
     private val _tag = MutableStateFlow<Tag?>(null)
     val tag: StateFlow<Tag?> = _tag.asStateFlow()
 
-    val uiState: StateFlow<AddEditTagUiState> = tagRepository
-        .tags.map<List<Tag>, AddEditTagUiState>(::Success)
-        .catch { emit(AddEditTagUiState.Error(it)) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AddEditTagUiState.Loading)
-
-    // Call this from the UI with a nullable tagId
     fun loadTag(tagId: Long?) {
         if (tagId == null) {
-            // New tag
-            _tag.value = Tag(
-                name = "",
-                locations = emptyList(),
-                personIds = emptyList(),
-            )
-        } else {
-            // Editing existing tag
-            viewModelScope.launch {
-                val tagList = tagRepository.tags.first()
-                _tag.value = tagList.find { it.uid.toLong() == tagId }
+            _tag.value = null
+            return
+        }
+        viewModelScope.launch {
+            tagRepository.tags.collect { tags ->
+                _tag.value = tags.find { it.uid == tagId.toInt() }
             }
         }
     }
@@ -57,6 +49,42 @@ class AddEditTagViewModel @Inject constructor(
             } else {
                 tagRepository.update(tag)
             }
+        }
+    }
+
+    fun addLocation(location: Location) {
+        viewModelScope.launch {
+            locationRepository.add(location)
+        }
+    }
+
+    fun deleteLocation(location: Location) {
+        viewModelScope.launch {
+            // Remove location from database
+            locationRepository.remove(location)
+            // Remove location from all tags that reference it
+            val tags = tagRepository.getAllTags()
+            tags.forEach { tag ->
+                if (location.name in tag.locations) {
+                    val updatedTag = tag.copy(locations = tag.locations - location.name)
+                    tagRepository.update(updatedTag)
+                }
+            }
+        }
+    }
+
+    fun deleteTag(tag: Tag) {
+        viewModelScope.launch {
+            // Remove tag from all persons
+            val persons = personRepository.persons.first()
+            persons.forEach { person ->
+                if (tag.uid in person.tagIds) {
+                    val updatedPerson = person.copy(tagIds = person.tagIds - tag.uid)
+                    personRepository.update(updatedPerson)
+                }
+            }
+            // Delete the tag itself
+            tagRepository.delete(tag)
         }
     }
 }

@@ -17,6 +17,7 @@
 package com.bename.data.local.database
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.PrimaryKey
@@ -51,4 +52,7 @@ interface PersonDao {
 
     @Query("DELETE FROM person")
     suspend fun clearAll()
+
+    @Delete
+    suspend fun delete(person: Person)
 }
