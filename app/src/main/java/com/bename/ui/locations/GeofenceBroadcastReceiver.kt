@@ -36,59 +36,43 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
         when (event.geofenceTransition) {
             Geofence.GEOFENCE_TRANSITION_ENTER -> {
+                LocationStatusManager.setCurrentLocations(locationNames)
                 Log.d("GeofenceReceiver", "Geofence transition is ENTER")
                 CoroutineScope(Dispatchers.IO).launch {
                     val db = AppDatabase.getInstance(context)
                     val tagDao = db.tagDao()
+                    val personDao = db.personDao()
                     val tags = tagDao.getAllTags()
-                    val matchedTags = tags.filter { tag ->
-                        tag.locations.any { it in locationNames }
-                    }
-                    val tagNames = matchedTags.joinToString(", ") { it.name }
-                    Log.d("GeofenceReceiver", "Matched tags: $tagNames")
-                    if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
-                        sendNotification(context, tagNames)
-                        Log.d("GeofenceReceiver", "Notification sent for tags: $tagNames")
-                    } else {
-                        Log.w("GeofenceReceiver", "Notifications are disabled")
+                    val people = personDao.getAllPersons() // You may need to implement this if not present
+
+                    for (location in locationNames) {
+                        val matchedTags = tags.filter { tag -> tag.locations.contains(location) }
+                        for (tag in matchedTags) {
+                            val taggedPeople = people.filter { person -> tag.uid in person.tagIds }
+                            val peopleNames = taggedPeople.joinToString(", ") { "${it.firstName} ${it.lastName.orEmpty()}" }
+                            val notificationText = if (peopleNames.isNotBlank()) {
+                                "You are near $location\nThese people tagged with ${tag.name} are here\n$peopleNames"
+                            } else {
+                                "You are near $location\nNo people tagged with ${tag.name} are here"
+                            }
+                            if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+                                sendNotification(context, notificationText)
+                                Log.d("GeofenceReceiver", "Notification sent: $notificationText")
+                            } else {
+                                Log.w("GeofenceReceiver", "Notifications are disabled")
+                            }
+                        }
                     }
                 }
             }
             Geofence.GEOFENCE_TRANSITION_DWELL -> {
-                CoroutineScope(Dispatchers.IO).launch {
-                    val db = AppDatabase.getInstance(context)
-                    val tagDao = db.tagDao()
-                    val tags = tagDao.getTags().first()
-                    val matchedTags = tags.filter { tag ->
-                        tag.locations.any { it in locationNames }
-                    }
-                    val tagNames = matchedTags.joinToString(", ") { it.name }
-                    Log.d("GeofenceReceiver", "Matched tags (DWELL): $tagNames")
-                    if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
-                        sendNotification(context, "Inside geofence: $tagNames")
-                        Log.d("GeofenceReceiver", "Notification sent for DWELL tags: $tagNames")
-                    } else {
-                        Log.w("GeofenceReceiver", "Notifications are disabled")
-                    }
-                }
+                // Add locations to the LocationStatusManager
+                LocationStatusManager.setCurrentLocations(locationNames)
+                Log.d("GeofenceReceiver", "Geofence transition is DWELL")
             }
+
             Geofence.GEOFENCE_TRANSITION_EXIT -> {
-                CoroutineScope(Dispatchers.IO).launch {
-                    val db = AppDatabase.getInstance(context)
-                    val tagDao = db.tagDao()
-                    val tags = tagDao.getTags().first()
-                    val matchedTags = tags.filter { tag ->
-                        tag.locations.any { it in locationNames }
-                    }
-                    val tagNames = matchedTags.joinToString(", ") { it.name }
-                    Log.d("GeofenceReceiver", "Matched tags (EXIT): $tagNames")
-                    if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
-                        sendNotification(context, "Exited geofence: $tagNames")
-                        Log.d("GeofenceReceiver", "Notification sent for EXIT tags: $tagNames")
-                    } else {
-                        Log.w("GeofenceReceiver", "Notifications are disabled")
-                    }
-                }
+                Log.d("GeofenceReceiver", "Geofence transition is EXIT")
             }
             else -> {
                 Log.d(
@@ -100,14 +84,15 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    private fun sendNotification(context: Context, tagNames: String) {
+    private fun sendNotification(context: Context, message: String) {
         val channelId = "geofence_channel"
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Nearby Tag(s)")
-            .setContentText("Tags: $tagNames")
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
-        NotificationManagerCompat.from(context).notify(1001, notification)
+        NotificationManagerCompat.from(context).notify(System.currentTimeMillis().toInt(), notification)
     }
 }

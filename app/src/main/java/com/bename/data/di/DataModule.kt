@@ -75,6 +75,10 @@ class FakePersonRepository @Inject constructor() : PersonRepository {
     override suspend fun remove(person: Person) {
         throw NotImplementedError()
     }
+
+    override suspend fun getAllPersons(): List<Person> {
+        throw NotImplementedError()
+    }
 }
 
 class FakeTagRepository @Inject constructor() : TagRepository {

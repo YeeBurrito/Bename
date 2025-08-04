@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -33,6 +34,7 @@ import com.bename.data.local.database.Tag
 fun SearchScreen(
     modifier: Modifier = Modifier,
     viewModel: SearchViewModel = hiltViewModel(),
+    currentLocations: List<String> = emptyList(),
     onPersonClick: (Int) -> Unit = {}
 ) {
     val tags by viewModel.tags.collectAsStateWithLifecycle()
@@ -140,6 +142,7 @@ fun SearchScreen(
         if (searchFocused) { //|| searchQuery.text.isNotBlank()) {
             LazyColumn {
                 items(filteredTags) { tag ->
+                    val isAtLocation = tag.locations.any { it in currentLocations }
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -173,6 +176,30 @@ fun SearchScreen(
                             )
                         }
                     }
+                    if (isAtLocation) {
+                        // Show the first matching location
+                        val locationName = tag.locations.firstOrNull { it in currentLocations }
+                        if (locationName != null) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(start = 28.dp, top = 2.dp, bottom = 4.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = com.google.android.libraries.places.R.drawable.location_on_icon),
+                                    contentDescription = "Location Arrow",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Tag at $locationName",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                    HorizontalDivider()
                 }
             }
         }
@@ -187,6 +214,7 @@ fun SearchScreen(
                     tags = personTags,
                     onClick = { onPersonClick(person.uid) }
                 )
+                HorizontalDivider()
             }
         }
     }

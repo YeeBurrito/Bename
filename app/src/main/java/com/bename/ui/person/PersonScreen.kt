@@ -28,13 +28,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -51,11 +58,27 @@ import com.bename.data.local.database.Tag
 fun PersonScreen(
     modifier: Modifier = Modifier,
     onPersonClick: (Int) -> Unit = {},
+    onAddPerson: () -> Unit = {},
     tags: List<Tag> = emptyList(),
     viewModel: PersonViewModel = hiltViewModel()
 ) {
     val items by viewModel.uiState.collectAsStateWithLifecycle()
     Column(modifier = modifier.fillMaxSize()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 16.dp)
+        ) {
+            Text(
+                text = "People",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = onAddPerson) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = "Add Person")
+            }
+        }
         // Remove all people button (commented out for now)
 //        Button(
 //            onClick = { viewModel.removeAllPeople() },
@@ -120,21 +143,38 @@ internal fun PersonScreen(
     tags: List<Tag> = emptyList(),
     modifier: Modifier = Modifier
 ) {
+    var searchQuery by remember { mutableStateOf("") }
+
+    // Filter people by name (first or last)
+    val filteredPeople = items.filter { person ->
+        searchQuery.isBlank() ||
+                person.firstName.contains(searchQuery, ignoreCase = true) ||
+                (person.lastName?.contains(searchQuery, ignoreCase = true) == true)
+    }
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(dimensionResource(id = R.dimen.horizontal_margin))
     ) {
-        Text(
-            text = "People",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(
-                horizontal = 8.dp,
-                vertical = 16.dp
-            )
+//        Text(
+//            text = "People",
+//            style = MaterialTheme.typography.headlineSmall,
+//            modifier = Modifier.padding(
+//                horizontal = 8.dp,
+//                vertical = 16.dp
+//            )
+//        )
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            label = { Text("Search") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            singleLine = true
         )
         LazyColumn {
-            items(items) { person ->
+            items(filteredPeople) { person ->
                 val personTags = tags.filter { it.uid in person.tagIds }
                 PersonItem(
                     person = person,
@@ -142,7 +182,7 @@ internal fun PersonScreen(
                     onPersonClick = { onPersonClick(person.uid) },
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                Divider()
+                HorizontalDivider()
             }
         }
     }

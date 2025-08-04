@@ -19,6 +19,7 @@ package com.bename.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -32,6 +33,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.bename.ui.addeditperson.AddEditPersonScreen
 import com.bename.ui.addedittag.AddEditTagScreen
+import com.bename.ui.locations.LocationStatusManager
 import com.bename.ui.person.PersonScreen
 import com.bename.ui.search.SearchScreen
 import com.bename.ui.settings.SettingsScreen
@@ -89,6 +91,7 @@ fun MainNavigation() {
                     onPersonClick = { personId ->
                         navController.navigate("${BenameDestination.AddEdit.name}/$personId")
                     },
+                    onAddPerson = { navController.navigate(BenameDestination.AddEdit.name) },
                     tags = tags,
                 )
             }
@@ -120,7 +123,9 @@ fun MainNavigation() {
 
             //composable(BenameDestination.Search.name) { /* TODO: Add SearchScreen */ }
             composable(BenameDestination.Search.name) {
+                val currentLocations by LocationStatusManager.currentLocations.collectAsState()
                 SearchScreen(
+                    currentLocations = currentLocations,
                     onPersonClick = { personId ->
                         navController.navigate("${BenameDestination.AddEdit.name}/$personId")
                     }

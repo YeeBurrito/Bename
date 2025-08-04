@@ -28,6 +28,8 @@ import com.bename.ui.tag.TagUiState
 import com.bename.ui.tag.TagViewModel
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -142,13 +144,44 @@ fun AddEditPersonScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             // Search bar (no dropdown)
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                label = { Text("Search tags") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+//            OutlinedTextField(
+//                value = searchQuery,
+//                onValueChange = { searchQuery = it },
+//                label = { Text("Search tags") },
+//                modifier = Modifier.fillMaxWidth(),
+//                singleLine = true
+//            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search tags") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
+                val tagExists = tags.any { it.name.equals(searchQuery.trim(), ignoreCase = true) }
+                IconButton(
+                    onClick = {
+                        if (searchQuery.isNotBlank() && !tagExists) {
+                            val newTag = com.bename.data.local.database.Tag(
+                                name = searchQuery.trim()
+                            )
+                            tagViewModel.addTag(newTag)
+                            // Optionally clear the search box after adding
+                            // searchQuery = ""
+                        }
+                    },
+                    enabled = searchQuery.isNotBlank() && !tagExists
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add tag"
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 

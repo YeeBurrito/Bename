@@ -55,4 +55,7 @@ interface PersonDao {
 
     @Delete
     suspend fun delete(person: Person)
+
+    @Query("SELECT * FROM person")
+    suspend fun getAllPersons(): List<Person>
 }

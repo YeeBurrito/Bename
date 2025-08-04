@@ -12,9 +12,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bename.R
 import com.bename.data.local.database.Tag
 import com.bename.ui.theme.MyApplicationTheme
+import androidx.compose.material3.OutlinedTextField
 
 @Composable
 fun TagScreen(
@@ -73,27 +76,42 @@ internal fun TagScreen(
     onTagClick: (Tag) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var searchQuery by remember { mutableStateOf("") }
+    val filteredItems = if (searchQuery.isBlank()) items
+    else items.filter { it.name.contains(searchQuery, ignoreCase = true) }
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(dimensionResource(id = R.dimen.horizontal_margin))
     ) {
-        Text(
-            text = "Tags screen placeholder",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(
-                horizontal = 8.dp,
-                vertical = 16.dp
-            )
-        )
-        Button(
-            onClick = onAddTag,
-            modifier = Modifier.padding(bottom = 16.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Add/Edit Tag")
+            Text(
+                text = "Tags",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = onAddTag) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Tag"
+                )
+            }
         }
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            label = { Text("Search tags") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+        )
         LazyColumn {
-            items(items) { tag ->
+            items(filteredItems) { tag ->
                 TagItem(
                     tag = tag,
                     onTagClick = { onTagClick(it) },
