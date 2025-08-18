@@ -90,6 +90,14 @@ dependencies {
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
     androidTestImplementation(composeBom)
+    implementation(libs.androidx.ui.text)
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.material3.v110)
+    implementation(libs.androidx.foundation)
+
+    //billing
+    implementation(libs.billing.ktx)
+    implementation(libs.billing)
 
     // Core Android dependencies
     implementation(libs.androidx.core.ktx)

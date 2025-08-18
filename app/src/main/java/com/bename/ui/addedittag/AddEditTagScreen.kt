@@ -69,6 +69,12 @@ fun AddEditTagScreen(
     var newLocationLat by remember { mutableStateOf<Double?>(null) }
     var newLocationLng by remember { mutableStateOf<Double?>(null) }
 
+    val premiumEnabled by viewModel.premiumEnabled.collectAsState()
+
+    val allTags = viewModel.tagRepository.tags.collectAsState(initial = emptyList()).value
+    val otherTagsWithLocation = allTags.any { it.uid != tagId && it.locations.isNotEmpty() }
+    val canSelectLocation = premiumEnabled || !otherTagsWithLocation
+
     LaunchedEffect(tagState) {
         tagState?.let {
             name = it.name
@@ -184,29 +190,34 @@ fun AddEditTagScreen(
 
             // List all locations with checkboxes
             Text("Locations:")
-            allLocations.forEach { location ->
-                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Checkbox(
-                        checked = selectedLocations.contains(location.name),
-                        onCheckedChange = { checked ->
-                            selectedLocations = if (checked) {
-                                selectedLocations + location.name
-                            } else {
-                                selectedLocations - location.name
+            if (canSelectLocation) {
+                allLocations.forEach { location ->
+                    val checked = selectedLocations.contains(location.name)
+                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = checked,
+                            onCheckedChange = { isChecked ->
+                                selectedLocations = if (isChecked) {
+                                    if (premiumEnabled) selectedLocations + location.name
+                                    else listOf(location.name) // Only one allowed if not premium
+                                } else {
+                                    selectedLocations - location.name
+                                }
                             }
+                        )
+                        Text(location.name, modifier = Modifier.weight(1f))
+                        IconButton(
+                            onClick = {
+                                viewModel.deleteLocation(location)
+                                selectedLocations = selectedLocations - location.name
+                            }
+                        ) {
+                            Icon(Icons.Default.Delete, contentDescription = "Delete location")
                         }
-                    )
-                    Text(location.name, modifier = Modifier.weight(1f))
-                    IconButton(
-                        onClick = {
-                            // This location object has the correct uid
-                            viewModel.deleteLocation(location)
-                            selectedLocations = selectedLocations - location.name
-                        }
-                    ) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete location")
                     }
                 }
+            } else {
+                Text("Only one tag can have a location. Upgrade to premium for more.")
             }
 
             Spacer(modifier = Modifier.height(16.dp))

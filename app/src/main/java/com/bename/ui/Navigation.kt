@@ -16,6 +16,7 @@
 
 package com.bename.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -42,12 +43,27 @@ import com.bename.ui.tag.TagUiState
 import com.bename.ui.tag.TagViewModel
 import com.bename.ui.util.BenameBottomBar
 import com.bename.ui.util.BenameDestination
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.bename.ui.settings.SettingsViewModel
 
 @Composable
 fun MainNavigation() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    // Get premiumEnabled from SettingsViewModel
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
+    val premiumEnabled by settingsViewModel.premiumEnabled.collectAsState()
 
     // List of routes where the bottom bar should be shown
     val bottomBarRoutes = setOf(
@@ -57,102 +73,158 @@ fun MainNavigation() {
         BenameDestination.Settings.name
     )
 
-    Scaffold(
-        bottomBar = {
-            if (currentRoute in bottomBarRoutes) {
-                BenameBottomBar(
-                    currentDestination = getCurrentDestination(currentRoute),
-                    onDestinationSelected = { destination ->
-                        navController.navigate(destination.name) {
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
+//    Scaffold(
+//        bottomBar = {
+//            if (currentRoute in bottomBarRoutes) {
+//                BenameBottomBar(
+//                    currentDestination = getCurrentDestination(currentRoute),
+//                    onDestinationSelected = { destination ->
+//                        navController.navigate(destination.name) {
+//                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+//                            launchSingleTop = true
+//                            restoreState = true
+//                        }
+//                    }
+//                )
+//            }
+//        }
+//    ) { innerPadding ->
+    Column {
+        Scaffold(
+            bottomBar = {
+                if (currentRoute in bottomBarRoutes) {
+                    Column {
+                        BenameBottomBar(
+                            currentDestination = getCurrentDestination(currentRoute),
+                            onDestinationSelected = { destination ->
+                                navController.navigate(destination.name) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
+                        if (!premiumEnabled) {
+                            // Fake ad banner
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Your Ad Here! Upgrade to Premium to remove ads.",
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(48.dp)
+                                        .background(Color(0xFF1976D2))
+                                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                                )
+                            }
                         }
                     }
-                )
-            }
-        }
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = BenameDestination.People.name,
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            //composable(BenameDestination.People.name) { PersonScreen(modifier = Modifier.padding(16.dp)) }
-            composable(BenameDestination.People.name) {
-                val tagViewModel: TagViewModel = hiltViewModel()
-                val tagUiState by tagViewModel.uiState.collectAsStateWithLifecycle()
-                val tags = when (tagUiState) {
-                    is TagUiState.Success -> (tagUiState as TagUiState.Success).data
-                    else -> emptyList()
                 }
-                PersonScreen(
-                    modifier = Modifier.padding(16.dp),
-                    onPersonClick = { personId ->
-                        navController.navigate("${BenameDestination.AddEdit.name}/$personId")
-                    },
-                    onAddPerson = { navController.navigate(BenameDestination.AddEdit.name) },
-                    tags = tags,
-                )
             }
-
-            composable(
-                route = "AddEditTag/{tagId}",
-                arguments = listOf(navArgument("tagId") { type = NavType.IntType; nullable = false })
-            ) { backStackEntry ->
-                val tagId = backStackEntry.arguments?.getInt("tagId")
-                AddEditTagScreen(
-                    tagId = tagId,
-                    onBack = { navController.navigateUp() }
-                )
-            }
-
-            composable(BenameDestination.Tags.name) {
-                val tagViewModel: TagViewModel = hiltViewModel()
-                val tagUiState by tagViewModel.uiState.collectAsStateWithLifecycle()
-                val tags = when (tagUiState) {
-                    is TagUiState.Success -> (tagUiState as TagUiState.Success).data
-                    else -> emptyList()
-                }
-                TagScreen(
-                    modifier = Modifier.padding(16.dp),
-                    onAddTag = { navController.navigate("AddEditTag") },
-                    onTagClick = { tag -> navController.navigate("AddEditTag/${tag.uid}") }
-                )
-            }
-
-            //composable(BenameDestination.Search.name) { /* TODO: Add SearchScreen */ }
-            composable(BenameDestination.Search.name) {
-                val currentLocations by LocationStatusManager.currentLocations.collectAsState()
-                SearchScreen(
-                    currentLocations = currentLocations,
-                    onPersonClick = { personId ->
-                        navController.navigate("${BenameDestination.AddEdit.name}/$personId")
+        ) { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = BenameDestination.People.name,
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                //composable(BenameDestination.People.name) { PersonScreen(modifier = Modifier.padding(16.dp)) }
+                composable(BenameDestination.People.name) {
+                    val tagViewModel: TagViewModel = hiltViewModel()
+                    val tagUiState by tagViewModel.uiState.collectAsStateWithLifecycle()
+                    val tags = when (tagUiState) {
+                        is TagUiState.Success -> (tagUiState as TagUiState.Success).data
+                        else -> emptyList()
                     }
-                )
-            }
-            //composable(BenameDestination.Tags.name) { TagScreen(modifier = Modifier.padding(16.dp), onAddTag = { navController.navigate("AddEditTag") }) }
-            composable(BenameDestination.Settings.name) { SettingsScreen(modifier = Modifier.padding(16.dp)) }
-            composable("AddEditTag") { AddEditTagScreen(modifier = Modifier, onBack = { navController.navigateUp() }) }
+                    PersonScreen(
+                        modifier = Modifier.padding(16.dp),
+                        onPersonClick = { personId ->
+                            navController.navigate("${BenameDestination.AddEdit.name}/$personId")
+                        },
+                        onAddPerson = { navController.navigate(BenameDestination.AddEdit.name) },
+                        tags = tags,
+                    )
+                }
 
-            //composable(BenameDestination.AddEdit.name) { AddEditPersonScreen(modifier = Modifier, onBack = { navController.navigateUp() }) }
-            composable(
-                route = "${BenameDestination.AddEdit.name}/{personId}",
-                arguments = listOf(navArgument("personId") { type = NavType.IntType; nullable = false })
-            ) { backStackEntry ->
-                val personId = backStackEntry.arguments?.getInt("personId")
-                AddEditPersonScreen(
-                    personId = personId,
-                    modifier = Modifier,
-                    onBack = { navController.navigateUp() }
-                )
-            }
-            composable(BenameDestination.AddEdit.name) {
-                AddEditPersonScreen(
-                    personId = null,
-                    modifier = Modifier,
-                    onBack = { navController.navigateUp() }
-                )
+                composable(
+                    route = "AddEditTag/{tagId}",
+                    arguments = listOf(navArgument("tagId") {
+                        type = NavType.IntType; nullable = false
+                    })
+                ) { backStackEntry ->
+                    val tagId = backStackEntry.arguments?.getInt("tagId")
+                    AddEditTagScreen(
+                        tagId = tagId,
+                        onBack = { navController.navigateUp() }
+                    )
+                }
+
+                composable(BenameDestination.Tags.name) {
+                    val tagViewModel: TagViewModel = hiltViewModel()
+                    val tagUiState by tagViewModel.uiState.collectAsStateWithLifecycle()
+                    val tags = when (tagUiState) {
+                        is TagUiState.Success -> (tagUiState as TagUiState.Success).data
+                        else -> emptyList()
+                    }
+                    TagScreen(
+                        modifier = Modifier.padding(16.dp),
+                        onAddTag = { navController.navigate("AddEditTag") },
+                        onTagClick = { tag -> navController.navigate("AddEditTag/${tag.uid}") }
+                    )
+                }
+
+                //composable(BenameDestination.Search.name) { /* TODO: Add SearchScreen */ }
+                composable(BenameDestination.Search.name) {
+                    val currentLocations by LocationStatusManager.currentLocations.collectAsState()
+                    SearchScreen(
+                        currentLocations = currentLocations,
+                        onPersonClick = { personId ->
+                            navController.navigate("${BenameDestination.AddEdit.name}/$personId")
+                        }
+                    )
+                }
+                //composable(BenameDestination.Tags.name) { TagScreen(modifier = Modifier.padding(16.dp), onAddTag = { navController.navigate("AddEditTag") }) }
+                composable(BenameDestination.Settings.name) {
+                    SettingsScreen(
+                        modifier = Modifier.padding(
+                            16.dp
+                        )
+                    )
+                }
+                composable("AddEditTag") {
+                    AddEditTagScreen(
+                        modifier = Modifier,
+                        onBack = { navController.navigateUp() })
+                }
+
+                //composable(BenameDestination.AddEdit.name) { AddEditPersonScreen(modifier = Modifier, onBack = { navController.navigateUp() }) }
+                composable(
+                    route = "${BenameDestination.AddEdit.name}/{personId}",
+                    arguments = listOf(navArgument("personId") {
+                        type = NavType.IntType; nullable = false
+                    })
+                ) { backStackEntry ->
+                    val personId = backStackEntry.arguments?.getInt("personId")
+                    AddEditPersonScreen(
+                        personId = personId,
+                        modifier = Modifier,
+                        onBack = { navController.navigateUp() }
+                    )
+                }
+                composable(BenameDestination.AddEdit.name) {
+                    AddEditPersonScreen(
+                        personId = null,
+                        modifier = Modifier,
+                        onBack = { navController.navigateUp() }
+                    )
+                }
             }
         }
     }

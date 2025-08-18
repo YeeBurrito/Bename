@@ -19,11 +19,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel(),
+    billingViewModel: BillingViewModel = hiltViewModel()
 ) {
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
     val darkMode by viewModel.darkMode.collectAsState()
     var showPermissionDialog by remember { mutableStateOf(false) }
+    val premiumEnabled by viewModel.premiumEnabled.collectAsState()
+    val premiumPurchased by billingViewModel.premiumPurchased.collectAsState()
+    val context = LocalContext.current
 
     val darkModeOptions = listOf("System Default", "Light", "Dark")
 
@@ -37,6 +41,47 @@ fun SettingsScreen(
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(bottom = 24.dp)
         )
+        // Premium purchase button
+//        Row(
+////            verticalAlignment = Alignment.CenterVertically,
+////            modifier = Modifier.fillMaxWidth()
+////        ) {
+////            Text("Premium (unlimited locations)", modifier = Modifier.weight(1f))
+////            if (premiumPurchased) {
+////                Text("Purchased", color = MaterialTheme.colorScheme.primary)
+////            } else {
+////                Button(
+////                    onClick = {
+////                        val activity = context as? android.app.Activity
+////                        if (activity != null) {
+////                            billingViewModel.launchPurchaseFlow(activity)
+////                        }
+////                    }
+////                ) {
+////                    Text("Buy for \$0.99")
+////                }
+////            }
+////        }
+        // Placeholder premium switch to enable/disable premium features
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Enable Premium Features", modifier = Modifier.weight(1f))
+            Switch(
+                checked = premiumEnabled,
+                onCheckedChange = { enabled ->
+                    viewModel.setPremiumEnabled(enabled)
+                    if (enabled && !premiumPurchased) {
+                        // Show purchase dialog or flow
+                        val activity = context as? android.app.Activity
+                        if (activity != null) {
+                            billingViewModel.launchPurchaseFlow(activity)
+                        }
+                    }
+                }
+            )
+        }
         // Notifications switch (existing)
         Row(
             verticalAlignment = Alignment.CenterVertically,

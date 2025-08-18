@@ -1,8 +1,8 @@
 package com.bename.ui.util
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,51 +31,28 @@ fun BenameBottomBar(
 ) {
     NavigationBar {
         BenameDestination.values().forEach { destination ->
-            if (destination == BenameDestination.AddEdit) {
-                // Special styling for Add Person
-                NavigationBarItem(
-                    icon = {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.size(48.dp)
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                //color = MaterialTheme.colorScheme.primary,
-                                shadowElevation = 6.dp,
-                                modifier = Modifier.size(48.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = Icons.Default.Person,
-                                        contentDescription = "Add Person",
-                                        //tint = MaterialTheme.colorScheme.onPrimary,
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                    Icon(
-                                        imageVector = Icons.Default.Add,
-                                        contentDescription = "Plus",
-                                        //tint = MaterialTheme.colorScheme.onPrimary,
-                                        modifier = Modifier
-                                            .size(18.dp)
-                                            .align(Alignment.BottomEnd)
-                                    )
-                                }
-                            }
-                        }
-                    },
-                    label = { Text(destination.label) },
-                    selected = currentDestination == destination,
-                    onClick = { onDestinationSelected(destination) }
-                )
-            } else {
-                NavigationBarItem(
-                    icon = { Icon(destination.icon, contentDescription = destination.label) },
-                    label = { Text(destination.label) },
-                    selected = currentDestination == destination,
-                    onClick = { onDestinationSelected(destination) }
-                )
-            }
+            NavigationBarItem(
+                icon = {
+                    if (destination == BenameDestination.AddEdit) {
+                        // Larger icon with plus overlay
+                        Icon(
+                            painter = painterResource(id = R.drawable.person_crop_circle_badge_plus_svgrepo_com),
+                            contentDescription = "Add Person",
+                            //tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(48.dp)
+                                //.align(Alignment.Center)
+                                //move slightly to the left
+                                .padding(end = 4.dp)
+                        )
+                    } else {
+                        Icon(destination.icon, contentDescription = destination.label)
+                    }
+                },
+                label = { Text(destination.label, maxLines = 1) },
+                selected = currentDestination == destination,
+                onClick = { onDestinationSelected(destination) }
+            )
         }
     }
 }

@@ -13,6 +13,7 @@ val Context.settingsDataStore by preferencesDataStore(name = "settings")
 object SettingsKeys {
     val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
     val DARK_MODE = intPreferencesKey("dark_mode") // 0=system, 1=light, 2=dark
+    val PREMIUM_ENABLED = booleanPreferencesKey("premium_enabled")
 }
 
 class SettingsDataStore(private val context: Context) {
@@ -28,5 +29,12 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setDarkMode(mode: Int) {
         context.settingsDataStore.edit { it[SettingsKeys.DARK_MODE] = mode }
+    }
+
+    val premiumEnabledFlow: Flow<Boolean> =
+        context.settingsDataStore.data.map { it[SettingsKeys.PREMIUM_ENABLED] ?: false }
+
+    suspend fun setPremiumEnabled(enabled: Boolean) {
+        context.settingsDataStore.edit { it[SettingsKeys.PREMIUM_ENABLED] = enabled }
     }
 }

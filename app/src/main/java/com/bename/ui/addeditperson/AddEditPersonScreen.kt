@@ -30,6 +30,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardCapitalization
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -120,14 +122,20 @@ fun AddEditPersonScreen(
                 value = firstName,
                 onValueChange = { firstName = it },
                 label = { Text("First Name") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    capitalization = KeyboardCapitalization.Words
+                )
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = lastName,
                 onValueChange = { lastName = it },
                 label = { Text("Last Name") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    capitalization = KeyboardCapitalization.Words
+                )
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
@@ -163,6 +171,7 @@ fun AddEditPersonScreen(
                     singleLine = true
                 )
                 val tagExists = tags.any { it.name.equals(searchQuery.trim(), ignoreCase = true) }
+                var lastAddedTagName by remember { mutableStateOf<String?>(null) }
                 IconButton(
                     onClick = {
                         if (searchQuery.isNotBlank() && !tagExists) {
@@ -170,8 +179,9 @@ fun AddEditPersonScreen(
                                 name = searchQuery.trim()
                             )
                             tagViewModel.addTag(newTag)
+                            lastAddedTagName = newTag.name // Store the last added tag name
                             // Optionally clear the search box after adding
-                            // searchQuery = ""
+                            searchQuery = ""
                         }
                     },
                     enabled = searchQuery.isNotBlank() && !tagExists
@@ -180,6 +190,15 @@ fun AddEditPersonScreen(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Add tag"
                     )
+                }
+                LaunchedEffect(tags, lastAddedTagName) {
+                    if (lastAddedTagName != null) {
+                        val newTag = tags.find { it.name.equals(lastAddedTagName, ignoreCase = true) }
+                        if (newTag != null && personState != null && newTag.uid !in personState!!.tagIds) {
+                            viewModel.addTagToPerson(newTag.uid)
+                            lastAddedTagName = null // Reset after selection
+                        }
+                    }
                 }
             }
 

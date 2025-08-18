@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.bename.data.LocationRepository
 import com.bename.data.PersonRepository
 import com.bename.data.TagRepository
+import com.bename.data.local.SettingsDataStore
 import com.bename.data.local.database.Location
 import com.bename.data.local.database.Tag
 import com.bename.ui.addedittag.AddEditTagUiState.Success
@@ -22,13 +23,17 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddEditTagViewModel @Inject constructor(
-    private val tagRepository: TagRepository,
+    val tagRepository: TagRepository,
     val locationRepository: LocationRepository,
-    private val personRepository: PersonRepository
+    private val personRepository: PersonRepository,
+    private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
 
     private val _tag = MutableStateFlow<Tag?>(null)
     val tag: StateFlow<Tag?> = _tag.asStateFlow()
+
+    val premiumEnabled = settingsDataStore.premiumEnabledFlow
+        .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     fun loadTag(tagId: Long?) {
         if (tagId == null) {

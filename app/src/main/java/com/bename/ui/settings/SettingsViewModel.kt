@@ -27,4 +27,11 @@ class SettingsViewModel @Inject constructor(
     fun setDarkMode(mode: Int) {
         viewModelScope.launch { settingsDataStore.setDarkMode(mode) }
     }
+
+    val premiumEnabled: StateFlow<Boolean> =
+        settingsDataStore.premiumEnabledFlow.stateIn(viewModelScope, SharingStarted.Lazily, false)
+
+    fun setPremiumEnabled(enabled: Boolean) {
+        viewModelScope.launch { settingsDataStore.setPremiumEnabled(enabled) }
+    }
 }
