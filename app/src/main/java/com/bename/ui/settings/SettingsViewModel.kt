@@ -34,4 +34,11 @@ class SettingsViewModel @Inject constructor(
     fun setPremiumEnabled(enabled: Boolean) {
         viewModelScope.launch { settingsDataStore.setPremiumEnabled(enabled) }
     }
+
+    val locationPopupShown: StateFlow<Boolean?> =
+        settingsDataStore.locationPopupShownFlow.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    fun setLocationPopupShown(shown: Boolean) {
+        viewModelScope.launch { settingsDataStore.setLocationPopupShown(shown) }
+    }
 }

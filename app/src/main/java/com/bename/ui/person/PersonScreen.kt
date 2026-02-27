@@ -68,7 +68,8 @@ fun PersonScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 16.dp)
+                //.padding(horizontal = 8.dp, vertical = 16.dp)
+                .padding(top = 8.dp, bottom = 8.dp),
         ) {
             Text(
                 text = "People",
@@ -154,7 +155,7 @@ internal fun PersonScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(dimensionResource(id = R.dimen.horizontal_margin))
+            //.padding(dimensionResource(id = R.dimen.horizontal_margin))
     ) {
 //        Text(
 //            text = "People",

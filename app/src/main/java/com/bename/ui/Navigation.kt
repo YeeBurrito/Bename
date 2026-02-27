@@ -47,13 +47,60 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bename.ui.settings.SettingsViewModel
+import android.content.Context
+import android.util.Log
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.LoadAdError
+
+@Composable
+fun BannerAd(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    AndroidView(
+        modifier = modifier,
+        factory = {
+            AdView(context).apply {
+                adUnitId = "ca-app-pub-3940256099942544/9214589741"
+                setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, 360))
+                adListener = object : AdListener() {
+                    override fun onAdLoaded() {
+                        Log.d("BannerAd", "Ad loaded successfully")
+                    }
+                    override fun onAdFailedToLoad(adError: LoadAdError) {
+                        Log.e("BannerAd", "Ad failed to load: ${adError.code} - ${adError.message}")
+                    }
+                    override fun onAdOpened() {
+                        Log.d("BannerAd", "Ad opened")
+                    }
+                    override fun onAdClosed() {
+                        Log.d("BannerAd", "Ad closed")
+                    }
+                }
+                loadAd(AdRequest.Builder().build())
+            }
+        }
+    )
+}
 
 @Composable
 fun MainNavigation() {
@@ -93,38 +140,41 @@ fun MainNavigation() {
         Scaffold(
             bottomBar = {
                 if (currentRoute in bottomBarRoutes) {
-                    Column {
-                        BenameBottomBar(
-                            currentDestination = getCurrentDestination(currentRoute),
-                            onDestinationSelected = { destination ->
-                                navController.navigate(destination.name) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
+                    Box(
+                        modifier = Modifier.navigationBarsPadding()
+                    ) {
+                        Column {
+                            BenameBottomBar(
+                                currentDestination = getCurrentDestination(currentRoute),
+                                onDestinationSelected = { destination ->
+                                    navController.navigate(destination.name) {
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
-                            }
-                        )
-                        if (!premiumEnabled) {
-                            // Fake ad banner
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "Your Ad Here! Upgrade to Premium to remove ads.",
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(48.dp)
-                                        .background(Color(0xFF1976D2))
-                                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                                )
-                            }
+                            )
+                            // Ad banner
+                            //if (!premiumEnabled) {
+//                                Box(
+//                                    modifier = Modifier
+//                                        .fillMaxWidth()
+//                                        .height(48.dp),
+//                                    contentAlignment = Alignment.Center
+//                                ) {
+//                                    Text(
+//                                        text = "Your Ad Here! Upgrade to Premium to remove ads.",
+//                                        color = Color.White,
+//                                        style = MaterialTheme.typography.bodyMedium,
+//                                        modifier = Modifier
+//                                            .fillMaxWidth()
+//                                            .height(48.dp)
+//                                            .background(Color(0xFF1976D2))
+//                                            .padding(horizontal = 16.dp)
+//                                    )
+//                                }
+                                //BannerAd(modifier = Modifier.fillMaxWidth()) TODO: Enable ads when approved by admob
+                            //}
                         }
                     }
                 }
@@ -232,4 +282,35 @@ fun MainNavigation() {
 
 private fun getCurrentDestination(route: String?): BenameDestination {
     return BenameDestination.values().find { it.name == route } ?: BenameDestination.People
+}
+
+//preview bottom bars, including ad banner
+@Preview(showBackground = true)
+@Composable
+fun BenameBottomBarPreview() {
+    Column {
+        BenameBottomBar(
+            currentDestination = BenameDestination.People,
+            onDestinationSelected = {}
+        )
+        // Fake ad banner
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Your Ad Here! Upgrade to Premium to remove ads.",
+                color = Color.White,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .background(Color(0xFF1976D2))
+                    .padding(horizontal = 16.dp)
+            )
+        }
+    }
 }

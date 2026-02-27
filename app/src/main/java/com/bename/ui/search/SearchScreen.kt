@@ -89,7 +89,25 @@ fun SearchScreen(
     val filteredTags = if (searchQuery.text.isBlank()) possibleTags
     else possibleTags.filter { it.name.contains(searchQuery.text, ignoreCase = true) }
 
+    // Auto-select tags based on current location if no tags are selected
+    LaunchedEffect(tags, currentLocations) {
+        if (selectedTags.isEmpty() && currentLocations.isNotEmpty()) {
+            val locationTags = tags.filter { tag ->
+                tag.locations.any { it in currentLocations }
+            }
+            if (locationTags.isNotEmpty()) {
+                selectedTags = locationTags
+            }
+        }
+    }
+
     Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
+        // Title
+        Text(
+            text = "Search",
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(top = 16.dp, bottom = 16.dp)
+        )
         // Search bar
         OutlinedTextField(
             value = searchQuery,

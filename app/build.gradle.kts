@@ -34,8 +34,8 @@ android {
         applicationId = "com.bename"
         minSdk = 23
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 12
+        versionName = "1.1"
 
         testInstrumentationRunner = "com.bename.HiltTestRunner"
         vectorDrawables {
@@ -98,6 +98,9 @@ dependencies {
     //billing
     implementation(libs.billing.ktx)
     implementation(libs.billing)
+
+    //ads
+    implementation(libs.play.services.ads)
 
     // Core Android dependencies
     implementation(libs.androidx.core.ktx)

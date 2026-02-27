@@ -32,6 +32,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.activity.compose.BackHandler
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.Button
+import androidx.compose.runtime.*
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -60,14 +65,67 @@ fun AddEditPersonScreen(
     var lastName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
+    var initialFirstName by remember { mutableStateOf("") }
+    var initialLastName by remember { mutableStateOf("") }
+    var initialDescription by remember { mutableStateOf("") }
+
+    var showDialog by remember { mutableStateOf(false) }
+
+    // Update isDirty to compare current values to initial values
+    val isDirty = firstName != initialFirstName ||
+            lastName != initialLastName ||
+            description != initialDescription
+
+    // Intercept back action
+    BackHandler(enabled = isDirty) {
+        showDialog = true
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Discard changes?") },
+            text = { Text("You have unsaved changes. Are you sure you want to go back?") },
+            confirmButton = {
+                Button(onClick = {
+                    showDialog = false
+                    onBack()
+                }) { Text("Yes") }
+            },
+            dismissButton = {
+                Button(onClick = { showDialog = false }) { Text("No") }
+            }
+        )
+    }
+
     // Populate fields when personState changes (for edit)
+//    LaunchedEffect(personState) {
+//        personState?.let {
+//            if (firstName.isBlank() && lastName.isBlank() && description.isBlank()) {
+//                firstName = it.firstName
+//                lastName = it.lastName.orEmpty()
+//                description = it.description.orEmpty()
+//            }
+//        }
+//    }
     LaunchedEffect(personState) {
         personState?.let {
             if (firstName.isBlank() && lastName.isBlank() && description.isBlank()) {
                 firstName = it.firstName
                 lastName = it.lastName.orEmpty()
                 description = it.description.orEmpty()
+                initialFirstName = it.firstName
+                initialLastName = it.lastName.orEmpty()
+                initialDescription = it.description.orEmpty()
             }
+        }
+    }
+    // For add mode, set initial values to empty
+    LaunchedEffect(personId) {
+        if (personId == null) {
+            initialFirstName = ""
+            initialLastName = ""
+            initialDescription = ""
         }
     }
 
@@ -85,7 +143,13 @@ fun AddEditPersonScreen(
         topBar = {
             AddEditPersonTopAppBar(
                 title = if (personId == null) "Add Person" else "Edit Person",
-                onBack = onBack,
+                onBack = {
+                    if (isDirty) {
+                        showDialog = true
+                    } else {
+                        onBack()
+                    }
+                },
                 actions = {
                     Button(
                         onClick = {
@@ -122,6 +186,7 @@ fun AddEditPersonScreen(
                 value = firstName,
                 onValueChange = { firstName = it },
                 label = { Text("First Name") },
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions.Default.copy(
                     capitalization = KeyboardCapitalization.Words
@@ -132,6 +197,7 @@ fun AddEditPersonScreen(
                 value = lastName,
                 onValueChange = { lastName = it },
                 label = { Text("Last Name") },
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions.Default.copy(
                     capitalization = KeyboardCapitalization.Words
@@ -211,53 +277,84 @@ fun AddEditPersonScreen(
             val selectedTags = filteredTags.filter { it.uid in selectedTagIds }
             val unselectedTags = filteredTags.filterNot { it.uid in selectedTagIds }
 
-            // Display selected tags at the top in blue
-            selectedTags.forEach { tag ->
+//            // Display selected tags at the top in blue
+//            selectedTags.forEach { tag ->
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(vertical = 4.dp)
+//                        .clickable { viewModel.removeTagFromPerson(tag.uid) }
+//                ) {
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.shoppingmode_24pxfilled),
+//                        contentDescription = "Tag Icon",
+//                        tint = Color(0xFF1976D2), // Blue color
+//                        modifier = Modifier.size(20.dp)
+//                    )
+//                    Spacer(modifier = Modifier.width(8.dp))
+//                    Text(
+//                        text = tag.name,
+//                        style = MaterialTheme.typography.bodySmall,
+//                        color = Color(0xFF1976D2) // Blue color
+//                    )
+//                }
+//            }
+//
+//            // Display unselected tags below in default color
+//            unselectedTags.forEach { tag ->
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(vertical = 4.dp)
+//                        .clickable { viewModel.addTagToPerson(tag.uid) }
+//                ) {
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.shoppingmode_24pxfilled),
+//                        contentDescription = "Tag Icon",
+//                        tint = Color.Gray,
+//                        modifier = Modifier.size(20.dp)
+//                    )
+//                    Spacer(modifier = Modifier.width(8.dp))
+//                    Text(
+//                        text = tag.name,
+//                        style = MaterialTheme.typography.bodySmall
+//                    )
+//                }
+//            }
+//            Spacer(modifier = Modifier.height(16.dp))
+
+            //Display all tags in alphabetical order, selected tags in blue
+            val allTagsSorted = (selectedTags + unselectedTags).sortedBy { it.name }
+            allTagsSorted.forEach { tag ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
-                        .clickable { viewModel.removeTagFromPerson(tag.uid) }
+                        .clickable {
+                            if (tag.uid in selectedTagIds) {
+                                viewModel.removeTagFromPerson(tag.uid)
+                            } else {
+                                viewModel.addTagToPerson(tag.uid)
+                            }
+                        }
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.shoppingmode_24pxfilled),
                         contentDescription = "Tag Icon",
-                        tint = Color(0xFF1976D2), // Blue color
+                        tint = if (tag.uid in selectedTagIds) Color(0xFF1976D2) else Color.Gray, // Blue if selected
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = tag.name,
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF1976D2) // Blue color
+                        color = if (tag.uid in selectedTagIds) Color(0xFF1976D2) else Color.Unspecified // Blue if selected
                     )
                 }
             }
-
-            // Display unselected tags below in default color
-            unselectedTags.forEach { tag ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .clickable { viewModel.addTagToPerson(tag.uid) }
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.shoppingmode_24pxfilled),
-                        contentDescription = "Tag Icon",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = tag.name,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
 
             if (personId != null && personState != null) {
                 Button(

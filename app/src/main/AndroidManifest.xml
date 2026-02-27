@@ -46,5 +46,8 @@
             android:name=".ui.locations.GeofenceBroadcastReceiver"
             android:exported="false"
             android:permission="com.google.android.gms.permission.INTERNAL_BROADCAST" />
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-9991841464113956~5806446084" />
     </application>
 </manifest>

@@ -15,7 +15,7 @@
   -->
 
 <resources>
-    <string name="app_name">BenameApplication</string>
+    <string name="app_name">Bename</string>
     <string name="cd_arrow_forward">Edit Person</string>
     <string name="cd_back">Back</string>
 </resources>

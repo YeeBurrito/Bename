@@ -31,7 +31,7 @@ data class Person(
     val lastName: String? = null,
     val description: String? = null,
     var hidden: Boolean = false,
-    val tagIds: List<Int> = emptyList(),
+    var tagIds: List<Int> = emptyList(),
 ) {
     @PrimaryKey(autoGenerate = true)
     var uid: Int = 0

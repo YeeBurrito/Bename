@@ -1,6 +1,10 @@
 package com.bename.ui.util
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -9,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -45,11 +50,21 @@ fun BenameBottomBar(
                                 //move slightly to the left
                                 .padding(end = 4.dp)
                         )
+                    } else if (destination == BenameDestination.Tags) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.shoppingmode_24px),
+                            contentDescription = destination.label
+                        )
+                    } else if (destination == BenameDestination.People) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.group_24px),
+                            contentDescription = destination.label
+                        )
                     } else {
                         Icon(destination.icon, contentDescription = destination.label)
                     }
                 },
-                label = { Text(destination.label, maxLines = 1) },
+                label = { Text(destination.label, fontSize = MaterialTheme.typography.labelSmall.fontSize) },
                 selected = currentDestination == destination,
                 onClick = { onDestinationSelected(destination) }
             )

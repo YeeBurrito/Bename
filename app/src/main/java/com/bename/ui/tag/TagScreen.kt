@@ -82,7 +82,7 @@ internal fun TagScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(dimensionResource(id = R.dimen.horizontal_margin))
+            //.padding(dimensionResource(id = R.dimen.horizontal_margin))
     ) {
         Row(
             modifier = Modifier
