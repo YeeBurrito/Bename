@@ -1,3 +1,5 @@
+// Created by Ethan Temple ("YeeBurrito") 2026
+
 package com.bename.ui.tag
 
 import androidx.compose.foundation.clickable
@@ -37,6 +39,7 @@ import com.bename.data.local.database.Tag
 import com.bename.ui.theme.MyApplicationTheme
 import androidx.compose.material3.OutlinedTextField
 
+// Main entry point for the Tag screen
 @Composable
 fun TagScreen(
     modifier: Modifier = Modifier,
@@ -44,9 +47,11 @@ fun TagScreen(
     onTagClick: (Tag) -> Unit,
     viewModel: TagViewModel = hiltViewModel()
 ) {
+    // Observe UI state from the ViewModel
     val items by viewModel.uiState.collectAsStateWithLifecycle()
     when (items) {
         is TagUiState.Success -> {
+            // Show tag list if loaded successfully
             TagScreen(
                 items = (items as TagUiState.Success).data,
                 onSave = viewModel::addTag,
@@ -56,11 +61,13 @@ fun TagScreen(
             )
         }
         is TagUiState.Loading -> {
+            // Show loading indicator
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Loading...")
             }
         }
         is TagUiState.Error -> {
+            // Show error message
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Error loading tags")
             }
@@ -68,6 +75,7 @@ fun TagScreen(
     }
 }
 
+// Displays the list of tags and search bar
 @Composable
 internal fun TagScreen(
     items: List<Tag>,
@@ -77,13 +85,15 @@ internal fun TagScreen(
     modifier: Modifier = Modifier
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    // Filter tags by search query
     val filteredItems = if (searchQuery.isBlank()) items
     else items.filter { it.name.contains(searchQuery, ignoreCase = true) }
     Column(
         modifier = modifier
             .fillMaxSize()
-            //.padding(dimensionResource(id = R.dimen.horizontal_margin))
+        //.padding(dimensionResource(id = R.dimen.horizontal_margin))
     ) {
+        // Header row with title and add button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -102,6 +112,7 @@ internal fun TagScreen(
                 )
             }
         }
+        // Search bar for filtering tags
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
@@ -110,6 +121,7 @@ internal fun TagScreen(
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
         )
+        // List of tags
         LazyColumn {
             items(filteredItems) { tag ->
                 TagItem(
@@ -123,6 +135,7 @@ internal fun TagScreen(
     }
 }
 
+// Displays a single tag item, expandable to show person IDs
 @Composable
 private fun TagItem(
     tag: Tag,
@@ -149,11 +162,13 @@ private fun TagItem(
                 text = tag.name,
                 style = MaterialTheme.typography.bodyLarge
             )
+            // Show locations associated with the tag
             Text(
                 text = tag.locations.joinToString(", "),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            // Expand to show person IDs if expanded
             if (isExpanded) {
                 Spacer(modifier = Modifier.padding(vertical = 4.dp))
                 Text(

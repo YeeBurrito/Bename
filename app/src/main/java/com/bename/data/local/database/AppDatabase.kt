@@ -1,18 +1,4 @@
-/*
- * Copyright (C) 2022 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Created by Ethan Temple ("YeeBurrito") 2026
 
 package com.bename.data.local.database
 
@@ -23,9 +9,11 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 
+// Room database holding Person, Tag, and Location entities
 @Database(entities = [Person::class, Tag::class, Location::class], version = 2)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
+    // Data access objects for each entity
     abstract fun personDao(): PersonDao
     abstract fun tagDao(): TagDao
     abstract fun locationDao(): LocationDao
@@ -34,6 +22,7 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+        // Returns a singleton instance of the database
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -46,25 +35,32 @@ abstract class AppDatabase : RoomDatabase() {
     }
 }
 
+// Type converters for Room to handle lists and custom types
 class Converters {
+    // Converts a list of Ints to a comma-separated String
     @TypeConverter
     fun fromIntList(list: List<Int>): String = list.joinToString(",")
 
+    // Converts a comma-separated String back to a list of Ints
     @TypeConverter
     fun toIntList(data: String): List<Int> =
         if (data.isEmpty()) emptyList() else data.split(",").map { it.toInt() }
 
+    // Converts a list of Strings to a double-semicolon-separated String
     @TypeConverter
     fun fromStringList(list: List<String>): String = list.joinToString(";;")
 
+    // Converts a double-semicolon-separated String back to a list of Strings
     @TypeConverter
     fun toStringList(data: String): List<String> =
         if (data.isEmpty()) emptyList() else data.split(";;")
 
+    // Converts a nullable String to a list of Strings
     @TypeConverter
     fun fromString(value: String?): List<String> =
         value?.split(";;")?.filter { it.isNotEmpty() } ?: emptyList()
 
+    // Converts a nullable list of Strings to a double-semicolon-separated String
     @TypeConverter
     fun listToString(list: List<String>?): String =
         list?.joinToString(";;") ?: ""

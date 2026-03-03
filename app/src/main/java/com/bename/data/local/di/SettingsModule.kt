@@ -1,3 +1,5 @@
+// Created by Ethan Temple ("YeeBurrito") 2026
+
 package com.bename.data.local.di
 
 import android.content.Context
@@ -9,9 +11,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+// Dagger Hilt module for providing SettingsDataStore dependency
 @Module
 @InstallIn(SingletonComponent::class)
 object SettingsModule {
+    // Provides a singleton instance of SettingsDataStore
     @Provides
     @Singleton
     fun provideSettingsDataStore(@ApplicationContext context: Context): SettingsDataStore {

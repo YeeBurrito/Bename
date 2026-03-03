@@ -1,3 +1,5 @@
+// Created by Ethan Temple ("YeeBurrito") 2026
+
 package com.bename.ui.locations
 
 import android.Manifest
@@ -11,10 +13,12 @@ import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
 
+// Manages geofence registration for a list of locations
 class GeofenceManager(
     private val context: Context,
     private val geofencingClient: GeofencingClient
 ) {
+    // Registers geofences for the provided locations
     @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     fun registerGeofences(locations: List<Location>) {
         if (locations.isEmpty()) {
@@ -28,18 +32,18 @@ class GeofenceManager(
                 "Creating geofence: name=${location.name}, lat=${location.latitude}, lng=${location.longitude}, radius=${location.radius}"
             )
             Geofence.Builder()
-                .setRequestId(location.name)
+                .setRequestId(location.name) // Use location name as geofence ID
                 .setCircularRegion(
                     location.latitude,
                     location.longitude,
-                    500f // location.radius, in meters
+                    500f // Fixed radius in meters
                 )
                 .setTransitionTypes(
                     Geofence.GEOFENCE_TRANSITION_ENTER or
                             Geofence.GEOFENCE_TRANSITION_EXIT or
                             Geofence.GEOFENCE_TRANSITION_DWELL
                 )
-                .setLoiteringDelay(30000) // Required for DWELL
+                .setLoiteringDelay(30000) // Required for DWELL transition (30 seconds)
                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
                 .build()
         }
@@ -56,6 +60,7 @@ class GeofenceManager(
             }
     }
 
+    // Returns a PendingIntent to handle geofence transitions
     private fun getGeofencePendingIntent(): PendingIntent {
         val intent = Intent(context, GeofenceBroadcastReceiver::class.java)
         return PendingIntent.getBroadcast(

@@ -1,3 +1,5 @@
+// Created by Ethan Temple ("YeeBurrito") 2026
+
 package com.bename.ui.addedittag
 
 import androidx.lifecycle.ViewModel
@@ -22,6 +24,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+// ViewModel for adding or editing a tag
 @HiltViewModel
 class AddEditTagViewModel @Inject constructor(
     val tagRepository: TagRepository,
@@ -30,20 +33,26 @@ class AddEditTagViewModel @Inject constructor(
     private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
 
+    // Holds the current tag being edited or created
     private val _tag = MutableStateFlow<Tag?>(null)
     val tag: StateFlow<Tag?> = _tag.asStateFlow()
+
+    // List of all people for assigning tags
     private val _people = MutableStateFlow<List<Person>>(emptyList())
     val people: StateFlow<List<Person>> = _people.asStateFlow()
 
+    // State for premium feature
     val premiumEnabled = settingsDataStore.premiumEnabledFlow
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     init {
+        // Load all people when ViewModel is created
         viewModelScope.launch {
             _people.value = personRepository.getAllPersons()
         }
     }
 
+    // Loads a tag by ID or clears if null (add mode)
     fun loadTag(tagId: Long?) {
         if (tagId == null) {
             _tag.value = null
@@ -56,6 +65,7 @@ class AddEditTagViewModel @Inject constructor(
         }
     }
 
+    // Toggle a person for the current tag (assign or remove)
     fun togglePersonForTag(person: Person) {
         val currentTag = _tag.value ?: return
         val updatedPersonIds = if (person.uid in currentTag.personIds) {
@@ -66,28 +76,25 @@ class AddEditTagViewModel @Inject constructor(
         val updatedTag = currentTag.copy(personIds = updatedPersonIds)
         _tag.value = updatedTag
 
-        // Update tag in DB
+        // Update tag and person in the database
         viewModelScope.launch {
             tagRepository.update(updatedTag)
-            // Also update the person to reflect the tag association
             val updatedPerson = if (person.uid in currentTag.personIds) {
                 person.copy(tagIds = person.tagIds - currentTag.uid)
             } else {
                 person.copy(tagIds = person.tagIds + currentTag.uid)
             }
             personRepository.update(updatedPerson)
-            // Optionally refresh people list
             _people.value = personRepository.getAllPersons()
         }
     }
 
+    // Add a new tag or update an existing one
     fun addOrUpdateTag(tag: Tag) {
         viewModelScope.launch {
             if (tag.uid == 0) {
-                // Only add if it's a new tag
                 tagRepository.add(tag)
             } else {
-                // Make sure to update the tag with the correct uid
                 tagRepository.update(tag)
             }
             // Refresh the tag from DB to update state
@@ -96,6 +103,7 @@ class AddEditTagViewModel @Inject constructor(
         }
     }
 
+    // Add a new location if not duplicate
     fun addLocation(location: Location) {
         viewModelScope.launch {
             val existingLocations = locationRepository.locations.first()
@@ -110,11 +118,10 @@ class AddEditTagViewModel @Inject constructor(
         }
     }
 
+    // Delete a location and remove it from all tags
     fun deleteLocation(location: Location) {
         viewModelScope.launch {
-            // Remove location from database
             locationRepository.remove(location)
-            // Remove location from all tags that reference it
             val tags = tagRepository.getAllTags()
             tags.forEach { tag ->
                 if (location.name in tag.locations) {
@@ -125,9 +132,9 @@ class AddEditTagViewModel @Inject constructor(
         }
     }
 
+    // Delete a tag and remove it from all persons
     fun deleteTag(tag: Tag) {
         viewModelScope.launch {
-            // Remove tag from all persons
             val persons = personRepository.persons.first()
             persons.forEach { person ->
                 if (tag.uid in person.tagIds) {
@@ -135,34 +142,32 @@ class AddEditTagViewModel @Inject constructor(
                     personRepository.update(updatedPerson)
                 }
             }
-            // Delete the tag itself
             tagRepository.delete(tag)
         }
     }
 
+    // Add a location to the current tag
     fun addLocationToTag(name: String, lat: Double, lng: Double) {
         val currentTag = _tag.value ?: return
         val newLocation = Location(name = name, latitude = lat, longitude = lng)
         viewModelScope.launch {
             locationRepository.add(newLocation)
-            // Preserve the uid when copying
             _tag.value = currentTag.copy(locations = currentTag.locations + name).apply { uid = currentTag.uid }
         }
     }
 
+    // Remove a location from the current tag
     fun removeLocationFromTag(locationName: String) {
         val currentTag = _tag.value ?: return
         _tag.value = currentTag.copy(locations = currentTag.locations - locationName).apply { uid = currentTag.uid }
     }
 
-    // In AddEditTagViewModel.kt
+    // Toggle a tag for a person (assign or remove)
     fun toggleTagForPerson(tag: Tag, person: Person) {
         viewModelScope.launch {
             if (person.tagIds.contains(tag.uid)) {
-                // Remove the tag from the person
                 person.tagIds = person.tagIds - tag.uid
             } else {
-                // Add the tag to the person
                 person.tagIds = person.tagIds + tag.uid
             }
             personRepository.update(person)
@@ -170,6 +175,7 @@ class AddEditTagViewModel @Inject constructor(
     }
 }
 
+// UI state for Add/Edit Tag screen
 sealed interface AddEditTagUiState {
     object Loading : AddEditTagUiState
     data class Error(val throwable: Throwable) : AddEditTagUiState

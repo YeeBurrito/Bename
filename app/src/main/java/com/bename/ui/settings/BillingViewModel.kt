@@ -1,3 +1,5 @@
+// Created by Ethan Temple ("YeeBurrito") 2026
+
 package com.bename.ui.settings
 
 import android.app.Activity
@@ -13,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+// ViewModel to handle billing and premium purchase logic
 @HiltViewModel
 class BillingViewModel @Inject constructor(
     app: Application,
@@ -24,13 +27,17 @@ class BillingViewModel @Inject constructor(
         private const val PRODUCT_PREMIUM = "premium"
     }
 
+    // StateFlow to observe if premium is purchased
     private val _premiumPurchased = MutableStateFlow(false)
     val premiumPurchased: StateFlow<Boolean> = _premiumPurchased
+
+    // StateFlow to observe if premium product details are ready
     private val _isPremiumProductReady = MutableStateFlow(false)
     val isPremiumProductReady: StateFlow<Boolean> = _isPremiumProductReady
 
     private var premiumProductDetails: ProductDetails? = null
 
+    // BillingClient instance for Google Play Billing
     private val billingClient: BillingClient = BillingClient.newBuilder(app)
         .setListener(this)
         .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
@@ -40,6 +47,7 @@ class BillingViewModel @Inject constructor(
         startBillingConnection()
     }
 
+    // Starts the connection to Google Play Billing
     private fun startBillingConnection() {
         Log.d(TAG, "Starting billing connection")
         billingClient.startConnection(object : BillingClientStateListener {
@@ -49,7 +57,6 @@ class BillingViewModel @Inject constructor(
                     queryProductDetails()
                     checkExistingPurchases()
                 }
-
             }
             override fun onBillingServiceDisconnected() {
                 // Optionally handle reconnection
@@ -57,6 +64,7 @@ class BillingViewModel @Inject constructor(
         })
     }
 
+    // Queries product details for the premium product
     private fun queryProductDetails() {
         val params = QueryProductDetailsParams.newBuilder()
             .setProductList(
@@ -84,6 +92,7 @@ class BillingViewModel @Inject constructor(
         }
     }
 
+    // Launches the purchase flow for the premium product
     fun launchPurchaseFlow(activity: Activity) {
         val productDetails = premiumProductDetails ?: return
         val offerToken = productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken
@@ -99,6 +108,7 @@ class BillingViewModel @Inject constructor(
         billingClient.launchBillingFlow(activity, flowParams)
     }
 
+    // Handles purchase updates from Google Play Billing
     override fun onPurchasesUpdated(
         billingResult: BillingResult,
         purchases: MutableList<Purchase>?
@@ -116,6 +126,7 @@ class BillingViewModel @Inject constructor(
         }
     }
 
+    // Handles a successful purchase and acknowledges it if needed
     private fun handlePurchase(purchase: Purchase) {
         if (purchase.products.contains(PRODUCT_PREMIUM)) {
             viewModelScope.launch {
@@ -131,6 +142,7 @@ class BillingViewModel @Inject constructor(
         }
     }
 
+    // Checks for existing purchases to update premium status
     private fun checkExistingPurchases() {
         val params = QueryPurchasesParams.newBuilder()
             .setProductType(BillingClient.ProductType.INAPP)

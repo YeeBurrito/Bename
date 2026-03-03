@@ -1,3 +1,5 @@
+// Created by Ethan Temple ("YeeBurrito") 2026
+
 package com.bename.ui.locations
 
 import android.Manifest
@@ -19,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+// BroadcastReceiver to handle geofence transitions (ENTER, DWELL, EXIT)
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Log.d("GeofenceReceiver", "Received geofence broadcast: $intent. Extras: ${intent.extras}")
@@ -37,6 +40,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
         when (event.geofenceTransition) {
             Geofence.GEOFENCE_TRANSITION_ENTER -> {
+                // User has entered a geofenced area
                 LocationStatusManager.setCurrentLocations(locationNames)
                 Log.d("GeofenceReceiver", "Geofence transition is ENTER")
                 CoroutineScope(Dispatchers.IO).launch {
@@ -44,11 +48,13 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                     val tagDao = db.tagDao()
                     val personDao = db.personDao()
                     val tags = tagDao.getAllTags()
-                    val people = personDao.getAllPersons() // You may need to implement this if not present
+                    val people = personDao.getAllPersons() // Get all people from DB
 
                     for (location in locationNames) {
+                        // Find tags associated with this location
                         val matchedTags = tags.filter { tag -> tag.locations.contains(location) }
                         for (tag in matchedTags) {
+                            // Find people associated with this tag
                             val taggedPeople = people.filter { person -> tag.uid in person.tagIds }
                             val peopleNames = taggedPeople.joinToString(", ") { "${it.firstName} ${it.lastName.orEmpty()}" }
                             val notificationText = if (peopleNames.isNotBlank()) {
@@ -56,6 +62,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                             } else {
                                 "You are near $location\nNo people tagged with ${tag.name} are here"
                             }
+                            // Send notification if enabled
                             if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
                                 sendNotification(context, notificationText)
                                 Log.d("GeofenceReceiver", "Notification sent: $notificationText")
@@ -67,12 +74,12 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                 }
             }
             Geofence.GEOFENCE_TRANSITION_DWELL -> {
-                // Add locations to the LocationStatusManager
+                // User is dwelling in a geofenced area
                 LocationStatusManager.setCurrentLocations(locationNames)
                 Log.d("GeofenceReceiver", "Geofence transition is DWELL")
             }
-
             Geofence.GEOFENCE_TRANSITION_EXIT -> {
+                // User has exited a geofenced area
                 Log.d("GeofenceReceiver", "Geofence transition is EXIT")
             }
             else -> {
@@ -84,6 +91,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         }
     }
 
+    // Helper function to send a notification about nearby tags/people
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun sendNotification(context: Context, message: String) {
         val channelId = "geofence_channel"

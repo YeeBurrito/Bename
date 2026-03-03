@@ -1,18 +1,4 @@
-/*
- * Copyright (C) 2022 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Created by Ethan Temple ("YeeBurrito") 2026
 
 package com.bename.ui
 
@@ -68,35 +54,38 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge() // Enable edge-to-edge drawing for the activity
         setContent {
+            // Get settings view model and observe dark mode preference
             val settingsViewModel: SettingsViewModel = hiltViewModel()
             val darkMode by settingsViewModel.darkMode.collectAsState()
             val darkTheme = when (darkMode) {
-                1 -> false // Light
-                2 -> true  // Dark
+                1 -> false // Light mode
+                2 -> true  // Dark mode
                 else -> isSystemInDarkTheme() // System default
             }
+            // Apply app theme
             MyApplicationTheme(darkTheme = darkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainNavigation()
+                    MainNavigation() // Main navigation composable
                 }
             }
+            // Show location access popup if needed
             val locationPopupShownState = settingsViewModel.locationPopupShown.collectAsState(initial = null)
             val showPopup = locationPopupShownState.value == false
             var showRationale by remember { mutableStateOf(false) }
 
             if (locationPopupShownState.value != null && showPopup) {
-            //if (true) { // Always show for testing
                 LocationAccessPopup(
                     onContinue = { showRationale = true },
                     onDismiss = { settingsViewModel.setLocationPopupShown(true) }
                 )
             }
 
+            // Show rationale dialog if user continues
             if (showRationale) {
                 AlertDialog(
                     onDismissRequest = { showRationale = false },
@@ -129,6 +118,7 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launchWhenStarted {
             locationRepository.locations.collectLatest { locations ->
+                // Register geofences if location permission is granted
                 if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                     geofenceManager.registerGeofences(locations)
                 } else {
@@ -137,11 +127,11 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-
+        // Set up location updates to keep geofencing engine active
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         val locationRequest = LocationRequest.Builder(
             Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-            500L // 0.5 second
+            500L // 0.5 second interval
         ).build()
 
         val locationCallback = object : LocationCallback() {
@@ -161,12 +151,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Clear all notifications
+        // Clear all notifications when activity resumes
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancelAll()
     }
 
+    // Request location permissions from the user
     private fun requestLocationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             requestPermissions(
@@ -182,12 +173,13 @@ class MainActivity : ComponentActivity() {
                 1001
             )
         }
+        // Open location settings for the user
         val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
         startActivity(intent)
     }
 }
 
-
+// Composable for the location access popup
 @Composable
 fun LocationAccessPopup(
     onContinue: () -> Unit,
@@ -211,7 +203,6 @@ fun LocationAccessPopup(
                 modifier = Modifier.padding(bottom = 24.dp)
             )
             Image(
-                //painter = painterResource(id = R.drawable.ic_location), // Replace with your image
                 painter = painterResource(id = R.drawable.benamelocationbanner),
                 contentDescription = "Location",
                 modifier = Modifier

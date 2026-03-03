@@ -1,18 +1,4 @@
-/*
- * Copyright (C) 2022 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Created by Ethan Temple ("YeeBurrito") 2026
 
 package com.bename.ui.person
 
@@ -54,6 +40,7 @@ import com.bename.R
 import com.bename.data.local.database.Person
 import com.bename.data.local.database.Tag
 
+// Main screen for displaying and managing people
 @Composable
 fun PersonScreen(
     modifier: Modifier = Modifier,
@@ -62,13 +49,14 @@ fun PersonScreen(
     tags: List<Tag> = emptyList(),
     viewModel: PersonViewModel = hiltViewModel()
 ) {
+    // Observe UI state from the ViewModel
     val items by viewModel.uiState.collectAsStateWithLifecycle()
     Column(modifier = modifier.fillMaxSize()) {
+        // Header row with title and add button
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                //.padding(horizontal = 8.dp, vertical = 16.dp)
                 .padding(top = 8.dp, bottom = 8.dp),
         ) {
             Text(
@@ -80,15 +68,7 @@ fun PersonScreen(
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Add Person")
             }
         }
-        // Remove all people button (commented out for now)
-//        Button(
-//            onClick = { viewModel.removeAllPeople() },
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(vertical = 8.dp)
-//        ) {
-//            Text("Remove All People")
-//        }
+        // Show content based on UI state
         when (items) {
             is PersonUiState.Success -> {
                 PersonScreen(
@@ -111,31 +91,9 @@ fun PersonScreen(
             }
         }
     }
-//    when (items) {
-//        is PersonUiState.Success -> {
-//            PersonScreen(
-//                items = (items as PersonUiState.Success).data,
-//                onSave = viewModel::addPerson,
-//                onPersonClick = onPersonClick,
-//                tags = tags,
-//                modifier = modifier
-//            )
-//        }
-//        is PersonUiState.Loading -> {
-//            // Show a loading indicator
-//            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-//                Text("Loading...")
-//            }
-//        }
-//        is PersonUiState.Error -> {
-//            // Show an error message
-//            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-//                Text("Error loading persons")
-//            }
-//        }
-//    }
 }
 
+// Displays a list of people with search functionality
 @Composable
 internal fun PersonScreen(
     items: List<Person>,
@@ -155,16 +113,8 @@ internal fun PersonScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            //.padding(dimensionResource(id = R.dimen.horizontal_margin))
     ) {
-//        Text(
-//            text = "People",
-//            style = MaterialTheme.typography.headlineSmall,
-//            modifier = Modifier.padding(
-//                horizontal = 8.dp,
-//                vertical = 16.dp
-//            )
-//        )
+        // Search bar
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
@@ -174,6 +124,7 @@ internal fun PersonScreen(
                 .padding(bottom = 8.dp),
             singleLine = true
         )
+        // List of people
         LazyColumn {
             items(filteredPeople) { person ->
                 val personTags = tags.filter { it.uid in person.tagIds }
@@ -189,33 +140,7 @@ internal fun PersonScreen(
     }
 }
 
-//@Composable
-//internal fun PersonScreen(
-//    items: List<Person>,
-//    onSave: (person: Person) -> Unit,
-//    modifier: Modifier = Modifier
-//) {
-//    Column(modifier) {
-//        var namePerson by remember { mutableStateOf("Compose") }
-//        Row(
-//            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-//            horizontalArrangement = Arrangement.spacedBy(16.dp)
-//        ) {
-//            TextField(
-//                value = namePerson,
-//                onValueChange = { namePerson = it }
-//            )
-//
-//            Button(modifier = Modifier.width(96.dp), onClick = { onSave(namePerson) }) {
-//                Text("Save")
-//            }
-//        }
-//        items.forEach {
-//            Text("Saved item: $it")
-//        }
-//    }
-//}
-
+// Displays a single person row with their tags
 @Composable
 private fun PersonItem(
     person: Person,
@@ -223,7 +148,6 @@ private fun PersonItem(
     tags: List<Tag> = emptyList(),
     modifier: Modifier = Modifier
 ) {
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -247,7 +171,6 @@ private fun PersonItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
             contentDescription = stringResource(id = R.string.cd_arrow_forward)
@@ -255,7 +178,7 @@ private fun PersonItem(
     }
 }
 
-// Previews
+// Previews for Compose UI
 
 @Preview(showBackground = true)
 @Composable

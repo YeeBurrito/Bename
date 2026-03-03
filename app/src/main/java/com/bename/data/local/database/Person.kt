@@ -1,18 +1,4 @@
-/*
- * Copyright (C) 2022 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Created by Ethan Temple ("YeeBurrito") 2026
 
 package com.bename.data.local.database
 
@@ -25,37 +11,43 @@ import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
+// Room entity representing a person
 @Entity
 data class Person(
-    val firstName: String,
-    val lastName: String? = null,
-    val description: String? = null,
-    var hidden: Boolean = false,
-    var tagIds: List<Int> = emptyList(),
+    val firstName: String,              // Person's first name
+    val lastName: String? = null,       // Person's last name (optional)
+    val description: String? = null,    // Description or notes (optional)
+    var hidden: Boolean = false,        // Whether the person is hidden
+    var tagIds: List<Int> = emptyList() // List of tag IDs associated with this person
 ) {
     @PrimaryKey(autoGenerate = true)
-    var uid: Int = 0
+    var uid: Int = 0                    // Unique ID for the person
 }
 
+// Data Access Object for Person entity
 @Dao
 interface PersonDao {
-    // Get the last 10 persons ordered by uid in descending order
+    // Returns all persons ordered by uid in descending order as a Flow
     @Query("SELECT * FROM person ORDER BY uid DESC") // LIMIT 10
     fun getPersons(): Flow<List<Person>>
 
-    // Add a new person to the database
+    // Inserts a new person into the database
     @Insert
     suspend fun insertPerson(item: Person)
 
+    // Updates an existing person in the database
     @Update
     suspend fun updatePerson(item: Person)
 
+    // Deletes all persons from the database
     @Query("DELETE FROM person")
     suspend fun clearAll()
 
+    // Deletes a specific person from the database
     @Delete
     suspend fun delete(person: Person)
 
+    // Returns all persons as a list (not a Flow)
     @Query("SELECT * FROM person")
     suspend fun getAllPersons(): List<Person>
 }

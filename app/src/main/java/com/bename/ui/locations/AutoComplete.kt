@@ -1,3 +1,6 @@
+// Created by Ethan Temple ("YeeBurrito") 2026
+//TODO: REMOVE API KEY
+
 package com.bename.ui.locations
 
 import android.app.Activity
@@ -35,7 +38,6 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 //import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlacesAutocompleteScreen(
@@ -50,6 +52,7 @@ fun PlacesAutocompleteScreen(
     val coroutineScope = rememberCoroutineScope()
     val isInEditMode = LocalInspectionMode.current
 
+    // Show a simple preview in design/inspection mode
     if (isInEditMode) {
         Column(
             modifier = modifier
@@ -69,6 +72,7 @@ fun PlacesAutocompleteScreen(
         return
     }
 
+    // Initialize Places API if not already initialized
     LaunchedEffect(Unit) {
         if (!Places.isInitialized()) {
             Places.initialize(context.applicationContext, apiKey)
@@ -77,6 +81,7 @@ fun PlacesAutocompleteScreen(
     val placesClient = remember { Places.createClient(context) }
     val sessionToken = remember { AutocompleteSessionToken.newInstance() }
 
+    // Fetch autocomplete predictions from Places API
     fun fetchPredictions(query: String) {
         if (query.isBlank()) {
             suggestions = emptyList()
@@ -100,6 +105,7 @@ fun PlacesAutocompleteScreen(
             .fillMaxWidth()
             .padding(16.dp)
     ) {
+        // Dropdown menu for showing location suggestions
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = it }
@@ -134,6 +140,7 @@ fun PlacesAutocompleteScreen(
             }
         }
         Spacer(modifier = Modifier.height(24.dp))
+        // Show the selected place
         selectedPlace?.let {
             Text("Selected place: $it", style = MaterialTheme.typography.bodyLarge)
         }

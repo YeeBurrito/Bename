@@ -1,3 +1,6 @@
+// Created by Ethan Temple ("YeeBurrito") 2026
+//TODO: Remove API key
+
 package com.bename.ui.addedittag
 
 import android.Manifest
@@ -7,37 +10,13 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,11 +33,7 @@ import com.bename.ui.locations.PlacesAutocompleteScreen
 import kotlinx.coroutines.launch
 import kotlin.coroutines.resumeWithException
 import com.google.android.gms.location.*
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -73,6 +48,7 @@ fun AddEditTagScreen(
     viewModel: AddEditTagViewModel = hiltViewModel(),
     onBack: () -> Unit = {}
 ) {
+    // Load tag data when entering the screen
     LaunchedEffect(tagId) {
         viewModel.loadTag(tagId?.toLong())
     }
@@ -87,6 +63,7 @@ fun AddEditTagScreen(
 
     val premiumEnabled by viewModel.premiumEnabled.collectAsState()
 
+    // Get all tags and check if another tag already has a location
     val allTags = viewModel.tagRepository.tags.collectAsState(initial = emptyList()).value
     val otherTagsWithLocation = allTags.any { it.uid != tagId && it.locations.isNotEmpty() }
     val canSelectLocation = premiumEnabled || !otherTagsWithLocation
@@ -95,32 +72,34 @@ fun AddEditTagScreen(
     val tag = tagState
     var selectedPersonIds by remember { mutableStateOf<List<Int>>(tagState?.personIds ?: emptyList()) }
 
+    // Track initial values for dirty check
     var initialName by remember { mutableStateOf("") }
     var initialLocations by remember { mutableStateOf<List<String>>(emptyList()) }
     var initialPersonIds by remember { mutableStateOf<List<Int>>(emptyList()) }
 
     var showDialog by remember { mutableStateOf(false) }
-
     var showLocationDialog by remember { mutableStateOf(false) }
     var showRationale by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // 1. Prepare a working tag object for the UI, even in add mode
+    // Prepare a working tag object for the UI, even in add mode
     val workingTag = tagState ?: Tag(
         name = name,
         locations = selectedLocations,
         personIds = selectedPersonIds
     )
 
-    // Update isDirty to compare current values to initial values
+    // Check if any field has changed
     val isDirty = name != initialName ||
             selectedLocations != initialLocations ||
             selectedPersonIds != initialPersonIds
 
+    // Intercept back action if there are unsaved changes
     BackHandler(enabled = isDirty) {
         showDialog = true
     }
 
+    // Show confirmation dialog if user tries to go back with unsaved changes
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
@@ -153,13 +132,6 @@ fun AddEditTagScreen(
         }
     }
 
-//    LaunchedEffect(tagState) {
-//        tagState?.let {
-//            name = it.name
-//            selectedLocations = it.locations
-//            selectedPersonIds = it.personIds
-//        }
-//    }
     // Populate fields and initial values when tagState changes (for edit)
     LaunchedEffect(tagState) {
         tagState?.let {
@@ -184,7 +156,6 @@ fun AddEditTagScreen(
 
     // Places API initialization
     var placesInitialized by remember { mutableStateOf(false) }
-    //val context = LocalContext.current
     LaunchedEffect(Unit) {
         if (!com.google.android.libraries.places.api.Places.isInitialized()) {
             com.google.android.libraries.places.api.Places.initialize(
@@ -216,6 +187,7 @@ fun AddEditTagScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            // Tag name input
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -225,7 +197,7 @@ fun AddEditTagScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Inline Places Autocomplete
+            // Inline Places Autocomplete for adding locations
             if (placesInitialized) {
                 var searchQuery by remember { mutableStateOf("") }
                 var suggestions by remember { mutableStateOf<List<com.google.android.libraries.places.api.model.AutocompletePrediction>>(emptyList()) }
@@ -258,38 +230,8 @@ fun AddEditTagScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
+                // Show location suggestions
                 suggestions.forEach { prediction ->
-//                    Text(
-//                        text = prediction.getFullText(null).toString(),
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .clickable {
-//                                // Fetch place details
-//                                val placeId = prediction.placeId
-//                                val placeFields = listOf(
-//                                    com.google.android.libraries.places.api.model.Place.Field.NAME,
-//                                    com.google.android.libraries.places.api.model.Place.Field.LAT_LNG
-//                                )
-//                                val request = com.google.android.libraries.places.api.net.FetchPlaceRequest.builder(placeId, placeFields).build()
-//                                coroutineScope.launch {
-//                                    val response = placesClient.fetchPlace(request).await()
-//                                    val place = response.place
-//                                    val latLng = place.latLng
-//                                    if (place.name != null && latLng != null) {
-//                                        viewModel.addLocationToTag(
-//                                            //com.bename.data.local.database.Location(
-//                                                place.name!!,
-//                                                latLng.latitude,
-//                                                latLng.longitude
-//                                            //)
-//                                        )
-//                                        searchQuery = ""
-//                                        suggestions = emptyList()
-//                                    }
-//                                }
-//                            }
-//                            .padding(8.dp)
-//                    )
                     Text(
                         text = prediction.getFullText(null).toString(),
                         modifier = Modifier
@@ -311,7 +253,6 @@ fun AddEditTagScreen(
                                             selectedLocations = selectedLocations + place.name!!
                                         } else {
                                             // Edit mode: update via ViewModel
-                                            //viewModel.addLocationToTag(place.name!!, latLng.latitude, latLng.longitude)
                                             onAddLocation(place.name!!, latLng.latitude, latLng.longitude)
                                             selectedLocations = selectedLocations + place.name!!
                                         }
@@ -327,34 +268,9 @@ fun AddEditTagScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // List all locations with checkboxes
+            // List all locations with remove buttons
             Text("Locations:")
             if (canSelectLocation) {
-//                allLocations.forEach { location ->
-//                    val checked = selectedLocations.contains(location.name)
-//                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-//                        Checkbox(
-//                            checked = checked,
-//                            onCheckedChange = { isChecked ->
-//                                selectedLocations = if (isChecked) {
-//                                    if (premiumEnabled) selectedLocations + location.name
-//                                    else listOf(location.name) // Only one allowed if not premium
-//                                } else {
-//                                    selectedLocations - location.name
-//                                }
-//                            }
-//                        )
-//                        Text(location.name, modifier = Modifier.weight(1f))
-//                        IconButton(
-//                            onClick = {
-//                                viewModel.deleteLocation(location)
-//                                selectedLocations = selectedLocations - location.name
-//                            }
-//                        ) {
-//                            Icon(Icons.Default.Delete, contentDescription = "Delete location")
-//                        }
-//                    }
-//                }
                 val locationsToShow = if (tagId == null) selectedLocations else tagState?.locations ?: emptyList()
                 locationsToShow.forEach { locationName ->
                     Row(
@@ -380,7 +296,7 @@ fun AddEditTagScreen(
                 Text("Only one tag can have a location. Upgrade to premium for more.")
             }
 
-            //People list section
+            // People list section for assigning tag
             PeopleTagAssignmentList(
                 people = people,
                 tag = workingTag,
@@ -407,13 +323,13 @@ fun AddEditTagScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
             val coroutineScope = rememberCoroutineScope()
+            // Save or add tag button
             Button(
                 onClick = {
                     val tag = Tag(
                         name = name,
                         locations = selectedLocations,
                         personIds = (if (tagId == null) selectedPersonIds else tagState?.personIds ?: emptyList())
-                        //personIds = tagState?.personIds ?: emptyList()
                     ).apply {
                         if (tagId != null && tagState != null) {
                             uid = tagState!!.uid // Set the existing tag's uid
@@ -422,10 +338,7 @@ fun AddEditTagScreen(
                     viewModel.addOrUpdateTag(tag)
                     if (tagId == null) {
                         // New tag, assign to selected people
-                        // First get the new tag state with uid
                         coroutineScope.launch {
-                            // Wait a moment to ensure the tag is added and we can fetch it
-                            //kotlinx.coroutines.delay(300)
                             val allTags = viewModel.tagRepository.getAllTags()
                             val newTag = allTags.find { it.name == tag.name && it.locations == tag.locations }
                             if (newTag != null) {
@@ -445,6 +358,7 @@ fun AddEditTagScreen(
                 Text(if (tagId == null) "Add" else "Save")
             }
 
+            // Delete tag button (only in edit mode)
             if (tagId != null && tagState != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
@@ -470,7 +384,7 @@ fun AddEditTagScreen(
         )
     }
 
-    // Rationale dialog overlay
+    // Rationale dialog overlay for location permission
     if (showRationale) {
         AlertDialog(
             onDismissRequest = { showRationale = false },
@@ -496,6 +410,7 @@ fun AddEditTagScreen(
     }
 }
 
+// List of people for assigning/removing tag
 @Composable
 fun PeopleTagAssignmentList(
     people: List<Person>,
@@ -530,7 +445,7 @@ fun PeopleTagAssignmentList(
     }
 }
 
-// Helper extension for coroutines
+// Helper extension for coroutines to await a Task result
 suspend fun <T> com.google.android.gms.tasks.Task<T>.await(): T =
     kotlinx.coroutines.suspendCancellableCoroutine { cont ->
         addOnSuccessListener { cont.resume(it, null) }
@@ -546,6 +461,7 @@ fun AddEditTagScreenPreview() {
     )
 }
 
+// Popup for requesting location access
 @Composable
 fun LocationAccessPopup(
     onContinue: () -> Unit,

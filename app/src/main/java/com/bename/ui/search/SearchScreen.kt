@@ -1,3 +1,5 @@
+// Created by Ethan Temple ("YeeBurrito") 2026
+
 package com.bename.ui.search
 
 import androidx.compose.foundation.background
@@ -30,6 +32,7 @@ import com.bename.R
 import com.bename.data.local.database.Person
 import com.bename.data.local.database.Tag
 
+// Main search screen composable
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
@@ -37,15 +40,12 @@ fun SearchScreen(
     currentLocations: List<String> = emptyList(),
     onPersonClick: (Int) -> Unit = {}
 ) {
+    // Collect tags and people from the ViewModel
     val tags by viewModel.tags.collectAsStateWithLifecycle()
     val people by viewModel.people.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     var searchFocused by remember { mutableStateOf(false) }
     var selectedTags by remember { mutableStateOf(listOf<Tag>()) }
-
-    // Filter tags by search query
-    //val filteredTags = if (searchQuery.text.isBlank()) tags
-    //else tags.filter { it.name.contains(searchQuery.text, ignoreCase = true) }
 
     // Filter people by selected tags and search query
     val filteredPeople = people.filter { person ->
@@ -55,6 +55,7 @@ fun SearchScreen(
                 (person.lastName?.contains(searchQuery.text, ignoreCase = true) == true)
         matchesTags && matchesQuery
     }
+
     // Get people who have all selected tags
     val peopleWithSelectedTags = if (selectedTags.isEmpty()) {
         people
@@ -70,14 +71,13 @@ fun SearchScreen(
         .toSet()
         .minus(selectedTags.map { it.uid }.toSet())
 
+    // Filter possible tags based on selection and search query
     val possibleTags = if (selectedTags.isEmpty()) {
         tags
     } else {
-        // Get people who have all selected tags
         val peopleWithSelectedTags = people.filter { person ->
             selectedTags.all { tag -> tag.uid in person.tagIds }
         }
-        // Collect possible tags from these people, excluding already selected tags
         val possibleTagUids = peopleWithSelectedTags
             .flatMap { it.tagIds }
             .toSet()
@@ -85,7 +85,6 @@ fun SearchScreen(
         tags.filter { it.uid in possibleTagUids }
     }
 
-    // Filter by search query
     val filteredTags = if (searchQuery.text.isBlank()) possibleTags
     else possibleTags.filter { it.name.contains(searchQuery.text, ignoreCase = true) }
 
@@ -119,7 +118,7 @@ fun SearchScreen(
             singleLine = true
         )
 
-        // Selected tags below search bar
+        // Show selected tags as chips
         if (selectedTags.isNotEmpty()) {
             LazyRow(
                 modifier = Modifier
@@ -134,7 +133,7 @@ fun SearchScreen(
                             Icon(
                                 painter = painterResource(id = R.drawable.shoppingmode_24pxfilled),
                                 contentDescription = "Tag Icon",
-                                tint = Color(0xFF1976D2), // Blue color
+                                tint = Color(0xFF1976D2),
                                 modifier = Modifier.size(20.dp)
                             )
                         },
@@ -156,8 +155,8 @@ fun SearchScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Tag suggestions (when focused or typing)
-        if (searchFocused) { //|| searchQuery.text.isNotBlank()) {
+        // Tag suggestions when search is focused
+        if (searchFocused) {
             LazyColumn {
                 items(filteredTags) { tag ->
                     val isAtLocation = tag.locations.any { it in currentLocations }
@@ -174,7 +173,7 @@ fun SearchScreen(
                         Icon(
                             painter = painterResource(id = R.drawable.shoppingmode_24pxfilled),
                             contentDescription = "Tag Icon",
-                            tint = Color(0xFF1976D2), // Blue color
+                            tint = Color(0xFF1976D2),
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -184,7 +183,7 @@ fun SearchScreen(
                             modifier = Modifier.weight(1f)
                         )
                         if (selectedTags.isEmpty()) {
-                            // Count how many people have this tag
+                            // Show count of people with this tag
                             val count = people.count { person -> tag.uid in person.tagIds }
                             Text(
                                 text = count.toString(),
@@ -195,7 +194,7 @@ fun SearchScreen(
                         }
                     }
                     if (isAtLocation) {
-                        // Show the first matching location
+                        // Show the first matching location for this tag
                         val locationName = tag.locations.firstOrNull { it in currentLocations }
                         if (locationName != null) {
                             Row(
@@ -224,6 +223,7 @@ fun SearchScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // List of filtered people
         LazyColumn {
             items(filteredPeople) { person ->
                 val personTags = tags.filter { it.uid in person.tagIds }
@@ -238,6 +238,7 @@ fun SearchScreen(
     }
 }
 
+// Displays a single person row with their tags
 @Composable
 private fun PersonSearchItem(
     person: Person,

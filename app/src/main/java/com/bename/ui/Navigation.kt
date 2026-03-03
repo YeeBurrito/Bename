@@ -1,18 +1,4 @@
-/*
- * Copyright (C) 2022 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Created by Ethan Temple ("YeeBurrito") 2026
 
 package com.bename.ui
 
@@ -73,6 +59,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.LoadAdError
 
+// Composable to display a banner ad using AdMob
 @Composable
 fun BannerAd(modifier: Modifier = Modifier) {
     val context = LocalContext.current
@@ -102,6 +89,7 @@ fun BannerAd(modifier: Modifier = Modifier) {
     )
 }
 
+// Main navigation composable for the app
 @Composable
 fun MainNavigation() {
     val navController = rememberNavController()
@@ -120,25 +108,10 @@ fun MainNavigation() {
         BenameDestination.Settings.name
     )
 
-//    Scaffold(
-//        bottomBar = {
-//            if (currentRoute in bottomBarRoutes) {
-//                BenameBottomBar(
-//                    currentDestination = getCurrentDestination(currentRoute),
-//                    onDestinationSelected = { destination ->
-//                        navController.navigate(destination.name) {
-//                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-//                            launchSingleTop = true
-//                            restoreState = true
-//                        }
-//                    }
-//                )
-//            }
-//        }
-//    ) { innerPadding ->
     Column {
         Scaffold(
             bottomBar = {
+                // Show bottom bar only on certain routes
                 if (currentRoute in bottomBarRoutes) {
                     Box(
                         modifier = Modifier.navigationBarsPadding()
@@ -154,26 +127,9 @@ fun MainNavigation() {
                                     }
                                 }
                             )
-                            // Ad banner
+                            // Ad banner (currently disabled, enable when approved by AdMob)
                             //if (!premiumEnabled) {
-//                                Box(
-//                                    modifier = Modifier
-//                                        .fillMaxWidth()
-//                                        .height(48.dp),
-//                                    contentAlignment = Alignment.Center
-//                                ) {
-//                                    Text(
-//                                        text = "Your Ad Here! Upgrade to Premium to remove ads.",
-//                                        color = Color.White,
-//                                        style = MaterialTheme.typography.bodyMedium,
-//                                        modifier = Modifier
-//                                            .fillMaxWidth()
-//                                            .height(48.dp)
-//                                            .background(Color(0xFF1976D2))
-//                                            .padding(horizontal = 16.dp)
-//                                    )
-//                                }
-                                //BannerAd(modifier = Modifier.fillMaxWidth()) TODO: Enable ads when approved by admob
+                            //    BannerAd(modifier = Modifier.fillMaxWidth())
                             //}
                         }
                     }
@@ -185,7 +141,7 @@ fun MainNavigation() {
                 startDestination = BenameDestination.People.name,
                 modifier = Modifier.padding(innerPadding)
             ) {
-                //composable(BenameDestination.People.name) { PersonScreen(modifier = Modifier.padding(16.dp)) }
+                // People screen with tag support
                 composable(BenameDestination.People.name) {
                     val tagViewModel: TagViewModel = hiltViewModel()
                     val tagUiState by tagViewModel.uiState.collectAsStateWithLifecycle()
@@ -203,6 +159,7 @@ fun MainNavigation() {
                     )
                 }
 
+                // Add/Edit Tag screen with tagId argument
                 composable(
                     route = "AddEditTag/{tagId}",
                     arguments = listOf(navArgument("tagId") {
@@ -216,6 +173,7 @@ fun MainNavigation() {
                     )
                 }
 
+                // Tag list screen
                 composable(BenameDestination.Tags.name) {
                     val tagViewModel: TagViewModel = hiltViewModel()
                     val tagUiState by tagViewModel.uiState.collectAsStateWithLifecycle()
@@ -230,7 +188,7 @@ fun MainNavigation() {
                     )
                 }
 
-                //composable(BenameDestination.Search.name) { /* TODO: Add SearchScreen */ }
+                // Search screen with current locations
                 composable(BenameDestination.Search.name) {
                     val currentLocations by LocationStatusManager.currentLocations.collectAsState()
                     SearchScreen(
@@ -240,21 +198,22 @@ fun MainNavigation() {
                         }
                     )
                 }
-                //composable(BenameDestination.Tags.name) { TagScreen(modifier = Modifier.padding(16.dp), onAddTag = { navController.navigate("AddEditTag") }) }
+
+                // Settings screen
                 composable(BenameDestination.Settings.name) {
                     SettingsScreen(
-                        modifier = Modifier.padding(
-                            16.dp
-                        )
+                        modifier = Modifier.padding(16.dp)
                     )
                 }
+
+                // Add/Edit Tag screen (no tagId)
                 composable("AddEditTag") {
                     AddEditTagScreen(
                         modifier = Modifier,
                         onBack = { navController.navigateUp() })
                 }
 
-                //composable(BenameDestination.AddEdit.name) { AddEditPersonScreen(modifier = Modifier, onBack = { navController.navigateUp() }) }
+                // Add/Edit Person screen with personId argument
                 composable(
                     route = "${BenameDestination.AddEdit.name}/{personId}",
                     arguments = listOf(navArgument("personId") {
@@ -268,6 +227,7 @@ fun MainNavigation() {
                         onBack = { navController.navigateUp() }
                     )
                 }
+                // Add/Edit Person screen (no personId)
                 composable(BenameDestination.AddEdit.name) {
                     AddEditPersonScreen(
                         personId = null,
@@ -280,11 +240,12 @@ fun MainNavigation() {
     }
 }
 
+// Helper to get the current destination from route string
 private fun getCurrentDestination(route: String?): BenameDestination {
     return BenameDestination.values().find { it.name == route } ?: BenameDestination.People
 }
 
-//preview bottom bars, including ad banner
+// Preview for the bottom bar and ad banner
 @Preview(showBackground = true)
 @Composable
 fun BenameBottomBarPreview() {
@@ -293,7 +254,7 @@ fun BenameBottomBarPreview() {
             currentDestination = BenameDestination.People,
             onDestinationSelected = {}
         )
-        // Fake ad banner
+        // Fake ad banner for preview
         Box(
             modifier = Modifier
                 .fillMaxWidth()

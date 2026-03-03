@@ -1,18 +1,4 @@
-/*
- * Copyright (C) 2022 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Created by Ethan Temple ("YeeBurrito") 2026
 
 package com.bename.data
 
@@ -22,40 +8,47 @@ import com.bename.data.local.database.Person
 import com.bename.data.local.database.PersonDao
 import javax.inject.Inject
 
+// Interface for person repository operations
 interface PersonRepository {
-    val persons: Flow<List<Person>>
+    val persons: Flow<List<Person>> // Flow of all persons
 
-    suspend fun add(person: Person)
-    suspend fun update(person: Person)
-    suspend fun clearAll()
-    suspend fun remove(person: Person)
-    suspend fun getAllPersons(): List<Person>
+    suspend fun add(person: Person) // Add a new person
+    suspend fun update(person: Person) // Update an existing person
+    suspend fun clearAll() // Remove all persons
+    suspend fun remove(person: Person) // Remove a specific person
+    suspend fun getAllPersons(): List<Person> // Get all persons as a list
 }
 
+// Default implementation of PersonRepository using Room DAO
 class DefaultPersonRepository @Inject constructor(
     private val personDao: PersonDao
 ) : PersonRepository {
 
+    // Flow of all persons from the database
     override val persons: Flow<List<Person>> =
         personDao.getPersons()
 
+    // Insert a new person into the database
     override suspend fun add(person: Person) {
         personDao.insertPerson(person)
     }
 
+    // Update an existing person in the database
     override suspend fun update(person: Person) {
         personDao.updatePerson(person)
     }
 
+    // Delete all persons from the database
     override suspend fun clearAll() {
         personDao.clearAll()
     }
 
+    // Delete a specific person from the database
     override suspend fun remove(person: Person) {
         personDao.delete(person)
     }
-    //@Query("SELECT * FROM person")
-    //    suspend fun getAllPersons(): List<Person>
+
+    // Get all persons as a list (not a Flow)
     override suspend fun getAllPersons(): List<Person> {
         return personDao.getAllPersons()
     }

@@ -1,3 +1,5 @@
+// Created by Ethan Temple ("YeeBurrito") 2026
+
 package com.bename.ui.addeditperson
 
 import android.annotation.SuppressLint
@@ -59,28 +61,32 @@ fun AddEditPersonScreen(
         else -> emptyList()
     }
 
+    // Observe person state
     val personState by viewModel.person.collectAsStateWithLifecycle()
 
+    // State for text fields
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
+    // State to track initial values for dirty check
     var initialFirstName by remember { mutableStateOf("") }
     var initialLastName by remember { mutableStateOf("") }
     var initialDescription by remember { mutableStateOf("") }
 
     var showDialog by remember { mutableStateOf(false) }
 
-    // Update isDirty to compare current values to initial values
+    // Check if any field has changed
     val isDirty = firstName != initialFirstName ||
             lastName != initialLastName ||
             description != initialDescription
 
-    // Intercept back action
+    // Intercept back action if there are unsaved changes
     BackHandler(enabled = isDirty) {
         showDialog = true
     }
 
+    // Show confirmation dialog if user tries to go back with unsaved changes
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
@@ -98,16 +104,7 @@ fun AddEditPersonScreen(
         )
     }
 
-    // Populate fields when personState changes (for edit)
-//    LaunchedEffect(personState) {
-//        personState?.let {
-//            if (firstName.isBlank() && lastName.isBlank() && description.isBlank()) {
-//                firstName = it.firstName
-//                lastName = it.lastName.orEmpty()
-//                description = it.description.orEmpty()
-//            }
-//        }
-//    }
+    // Populate fields when editing an existing person
     LaunchedEffect(personState) {
         personState?.let {
             if (firstName.isBlank() && lastName.isBlank() && description.isBlank()) {
@@ -129,9 +126,11 @@ fun AddEditPersonScreen(
         }
     }
 
+    // State for tag search and dropdown
     var searchQuery by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
 
+    // Filter tags by search query
     val filteredTags = if (searchQuery.isBlank()) {
         tags
     } else {
@@ -151,6 +150,7 @@ fun AddEditPersonScreen(
                     }
                 },
                 actions = {
+                    // Save or add person
                     Button(
                         onClick = {
                             val person = Person(
@@ -182,6 +182,7 @@ fun AddEditPersonScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            // First name input
             OutlinedTextField(
                 value = firstName,
                 onValueChange = { firstName = it },
@@ -193,6 +194,7 @@ fun AddEditPersonScreen(
                 )
             )
             Spacer(modifier = Modifier.height(8.dp))
+            // Last name input
             OutlinedTextField(
                 value = lastName,
                 onValueChange = { lastName = it },
@@ -204,6 +206,7 @@ fun AddEditPersonScreen(
                 )
             )
             Spacer(modifier = Modifier.height(8.dp))
+            // Description input
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
@@ -211,24 +214,17 @@ fun AddEditPersonScreen(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(16.dp))
-            // Tags
+            // Tags section
             Text(
                 text = "Tags",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            // Search bar (no dropdown)
-//            OutlinedTextField(
-//                value = searchQuery,
-//                onValueChange = { searchQuery = it },
-//                label = { Text("Search tags") },
-//                modifier = Modifier.fillMaxWidth(),
-//                singleLine = true
-//            )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
+                // Tag search input
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -238,6 +234,7 @@ fun AddEditPersonScreen(
                 )
                 val tagExists = tags.any { it.name.equals(searchQuery.trim(), ignoreCase = true) }
                 var lastAddedTagName by remember { mutableStateOf<String?>(null) }
+                // Add new tag button
                 IconButton(
                     onClick = {
                         if (searchQuery.isNotBlank() && !tagExists) {
@@ -257,6 +254,7 @@ fun AddEditPersonScreen(
                         contentDescription = "Add tag"
                     )
                 }
+                // Automatically select the tag after adding
                 LaunchedEffect(tags, lastAddedTagName) {
                     if (lastAddedTagName != null) {
                         val newTag = tags.find { it.name.equals(lastAddedTagName, ignoreCase = true) }
@@ -273,59 +271,11 @@ fun AddEditPersonScreen(
             // Get selected tag IDs
             val selectedTagIds = personState?.tagIds ?: emptyList<Long>()
 
-            // Split tags
+            // Split tags into selected and unselected
             val selectedTags = filteredTags.filter { it.uid in selectedTagIds }
             val unselectedTags = filteredTags.filterNot { it.uid in selectedTagIds }
 
-//            // Display selected tags at the top in blue
-//            selectedTags.forEach { tag ->
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(vertical = 4.dp)
-//                        .clickable { viewModel.removeTagFromPerson(tag.uid) }
-//                ) {
-//                    Icon(
-//                        painter = painterResource(id = R.drawable.shoppingmode_24pxfilled),
-//                        contentDescription = "Tag Icon",
-//                        tint = Color(0xFF1976D2), // Blue color
-//                        modifier = Modifier.size(20.dp)
-//                    )
-//                    Spacer(modifier = Modifier.width(8.dp))
-//                    Text(
-//                        text = tag.name,
-//                        style = MaterialTheme.typography.bodySmall,
-//                        color = Color(0xFF1976D2) // Blue color
-//                    )
-//                }
-//            }
-//
-//            // Display unselected tags below in default color
-//            unselectedTags.forEach { tag ->
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(vertical = 4.dp)
-//                        .clickable { viewModel.addTagToPerson(tag.uid) }
-//                ) {
-//                    Icon(
-//                        painter = painterResource(id = R.drawable.shoppingmode_24pxfilled),
-//                        contentDescription = "Tag Icon",
-//                        tint = Color.Gray,
-//                        modifier = Modifier.size(20.dp)
-//                    )
-//                    Spacer(modifier = Modifier.width(8.dp))
-//                    Text(
-//                        text = tag.name,
-//                        style = MaterialTheme.typography.bodySmall
-//                    )
-//                }
-//            }
-//            Spacer(modifier = Modifier.height(16.dp))
-
-            //Display all tags in alphabetical order, selected tags in blue
+            // Display all tags in alphabetical order, selected tags in blue
             val allTagsSorted = (selectedTags + unselectedTags).sortedBy { it.name }
             allTagsSorted.forEach { tag ->
                 Row(
@@ -356,6 +306,7 @@ fun AddEditPersonScreen(
                 }
             }
 
+            // Remove person button (only in edit mode)
             if (personId != null && personState != null) {
                 Button(
                     onClick = {

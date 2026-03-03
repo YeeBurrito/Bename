@@ -1,3 +1,5 @@
+// Created by Ethan Temple ("YeeBurrito") 2026
+
 package com.bename.ui.addeditperson
 
 import androidx.lifecycle.ViewModel
@@ -17,22 +19,23 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import kotlinx.coroutines.flow.*
 
+// ViewModel for adding or editing a person
 @HiltViewModel
 class AddEditPersonViewModel @Inject constructor(
     private val personRepository: PersonRepository,
-    // Pass personId as a parameter (nullable)
 ) : ViewModel() {
 
-    // Backing property for the person being edited or created
+    // Holds the current person being edited or created
     private val _person = MutableStateFlow<Person?>(null)
     val person: StateFlow<Person?> = _person.asStateFlow()
 
+    // UI state for observing the list of persons
     val uiState: StateFlow<AddEditPersonUiState> = personRepository
         .persons.map<List<Person>, AddEditPersonUiState>(::Success)
         .catch { emit(AddEditPersonUiState.Error(it)) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AddEditPersonUiState.Loading)
 
-    // Call this from the UI with a nullable personId
+    // Loads a person by ID or creates a new one if ID is null
     fun loadPerson(personId: Long?) {
         if (personId == null) {
             // New person
@@ -51,6 +54,7 @@ class AddEditPersonViewModel @Inject constructor(
         }
     }
 
+    // Adds a new person or updates an existing one
     fun addOrUpdatePerson(person: Person) {
         viewModelScope.launch {
             if (person.uid == 0) {
@@ -61,6 +65,7 @@ class AddEditPersonViewModel @Inject constructor(
         }
     }
 
+    // Adds a tag to the current person
     fun addTagToPerson(tagId: Int) {
         val current = _person.value
         if (current != null && tagId !in current.tagIds) {
@@ -68,6 +73,7 @@ class AddEditPersonViewModel @Inject constructor(
         }
     }
 
+    // Removes a tag from the current person
     fun removeTagFromPerson(tagId: Int) {
         val current = _person.value
         if (current != null && tagId in current.tagIds) {
@@ -75,6 +81,7 @@ class AddEditPersonViewModel @Inject constructor(
         }
     }
 
+    // Removes a person from the repository
     fun removePerson(person: Person) {
         viewModelScope.launch {
             personRepository.remove(person)
@@ -82,6 +89,7 @@ class AddEditPersonViewModel @Inject constructor(
     }
 }
 
+// UI state for Add/Edit Person screen
 sealed interface AddEditPersonUiState {
     object Loading : AddEditPersonUiState
     data class Error(val throwable: Throwable) : AddEditPersonUiState

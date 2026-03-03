@@ -1,18 +1,4 @@
-/*
- * Copyright (C) 2022 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Created by Ethan Temple ("YeeBurrito") 2026
 
 package com.bename.data.di
 
@@ -34,22 +20,26 @@ import com.bename.data.local.database.Tag
 import javax.inject.Inject
 import javax.inject.Singleton
 
+// Dagger Hilt module to provide repository implementations
 @Module
 @InstallIn(SingletonComponent::class)
 interface DataModule {
 
+    // Binds DefaultPersonRepository as the implementation for PersonRepository
     @Singleton
     @Binds
     fun bindsPersonRepository(
         personRepository: DefaultPersonRepository
     ): PersonRepository
 
+    // Binds DefaultTagRepository as the implementation for TagRepository
     @Singleton
     @Binds
     fun bindsTagRepository(
         tagRepository: DefaultTagRepository
     ): TagRepository
 
+    // Binds DefaultLocationRepository as the implementation for LocationRepository
     @Singleton
     @Binds
     fun bindsLocationRepository(
@@ -57,7 +47,9 @@ interface DataModule {
     ): LocationRepository
 }
 
+// Fake implementation of PersonRepository for testing purposes
 class FakePersonRepository @Inject constructor() : PersonRepository {
+    // Emits a static list of fake persons
     override val persons: Flow<List<Person>> = flowOf(fakePersons)
 
     override suspend fun add(person: Person) {
@@ -81,7 +73,9 @@ class FakePersonRepository @Inject constructor() : PersonRepository {
     }
 }
 
+// Fake implementation of TagRepository for testing purposes
 class FakeTagRepository @Inject constructor() : TagRepository {
+    // Emits a static list of fake tags
     override val tags: Flow<List<Tag>> = flowOf(fakeTags)
 
     override suspend fun add(tag: Tag) {
@@ -104,8 +98,9 @@ class FakeTagRepository @Inject constructor() : TagRepository {
         throw NotImplementedError()
     }
 }
-
+// Fake implementation of LocationRepository for testing purposes
 class FakeLocationRepository @Inject constructor() : LocationRepository {
+    // Emits a static list of fake locations
     override val locations: Flow<List<Location>> = flowOf(fakeLocations)
 
     override suspend fun add(location: Location) {
@@ -117,6 +112,7 @@ class FakeLocationRepository @Inject constructor() : LocationRepository {
     }
 }
 
+// Sample fake data for testing
 val fakePersons = listOf(
     Person(
         firstName = "John",
