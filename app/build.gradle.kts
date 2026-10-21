@@ -46,10 +46,6 @@ android {
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
         }
-
-        // Import places API key from secret.properties
-        //val placesApiKey = project.findProperty("PLACES_API_KEY") ?: throw GradleException("Missing PLACES_API_KEY in secrets.properties")
-        //buildConfigField("String", "PLACES_API_KEY", "\"$placesApiKey\"")
     }
 
     buildTypes {
@@ -148,4 +144,11 @@ dependencies {
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)
+}
+
+// Exposes PLACES_API_KEY from secrets.properties (not committed) as BuildConfig.PLACES_API_KEY,
+// falling back to the placeholder in local.defaults.properties so the project still builds
+secrets {
+    propertiesFileName = "secrets.properties"
+    defaultPropertiesFileName = "local.defaults.properties"
 }

@@ -1,5 +1,4 @@
 // Created by Ethan Temple ("YeeBurrito") 2026
-//TODO: Remove API key
 
 package com.bename.ui.addedittag
 
@@ -37,6 +36,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import com.bename.BuildConfig
 import com.bename.R
 import com.bename.ui.person.PersonViewModel
 import com.bename.ui.tag.TagViewModel
@@ -160,7 +160,7 @@ fun AddEditTagScreen(
         if (!com.google.android.libraries.places.api.Places.isInitialized()) {
             com.google.android.libraries.places.api.Places.initialize(
                 context.applicationContext,
-                "REDACTED_API_KEY"
+                BuildConfig.PLACES_API_KEY
             )
         }
         placesInitialized = true

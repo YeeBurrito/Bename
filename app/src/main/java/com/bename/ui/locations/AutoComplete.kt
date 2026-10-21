@@ -1,15 +1,7 @@
 // Created by Ethan Temple ("YeeBurrito") 2026
-//TODO: REMOVE API KEY
 
 package com.bename.ui.locations
 
-import android.app.Activity
-import android.content.Context
-import android.content.Intent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,25 +10,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.android.volley.BuildConfig
-import com.bename.ui.util.BenameBottomBarPreview
+import com.bename.BuildConfig
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
-import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.TypeFilter
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
-import com.google.android.libraries.places.api.net.PlacesClient
-import com.google.android.libraries.places.widget.PlaceAutocomplete
-import com.google.android.libraries.places.widget.PlaceAutocompleteActivity
-// com.google.android.libraries.places.widget.model.Field
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.coroutines.resumeWithException
-import androidx.compose.material3.ExposedDropdownMenuBox
-//import androidx.compose.material3.ExposedDropdownMenu
-import androidx.compose.material3.ExperimentalMaterial3Api
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -157,5 +139,5 @@ suspend fun <T> com.google.android.gms.tasks.Task<T>.await(): T =
 @Preview(showBackground = true)
 @Composable
 fun PlacesAutocompleteScreenPreview() {
-    PlacesAutocompleteScreen(apiKey = "REDACTED_API_KEY")
+    PlacesAutocompleteScreen(apiKey = BuildConfig.PLACES_API_KEY)
 }
